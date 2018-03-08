@@ -408,51 +408,6 @@ function _registryonsteroids_process_theme_registry(array &$registry, array $the
 }
 
 /**
- * Ensures the phase functions are invoked in the correct order.
- *
- * @param array $functions
- *   The phase functions to iterate over.
- * @param string $hook
- *   The current hook being processed.
- * @param string $phase
- *   The current phase being processed.
- * @param array $themes
- *   An indexed array of current themes.
- *
- * @see https://www.drupal.org/node/2098551
- */
-function _registryonsteroids_registry_sort_phase_functions(array &$functions, $hook, $phase, array $themes) {
-  // Immediately return if there is nothing to sort.
-  if (count($functions) < 2) {
-    return;
-  }
-
-  // Create an associative array of theme functions to ensure sort order.
-  $theme_functions = array_fill_keys($themes, array());
-
-  // Iterate over all the themes.
-  foreach ($themes as $theme) {
-    // Only add the function to the array of theme functions if it currently
-    // exists in the $functions array.
-    $function = $theme . '_' . $phase . '_' . $hook;
-    $key = array_search($function, $functions, TRUE);
-    if ($key !== FALSE) {
-      // Save the theme function to be added later, but sorted.
-      $theme_functions[$theme][] = $function;
-
-      // Remove it from the current $functions array.
-      unset($functions[$key]);
-    }
-  }
-
-  // Iterate over all the captured theme functions and place them back into
-  // the phase functions array.
-  foreach ($theme_functions as $array) {
-    $functions = array_merge($functions, $array);
-  }
-}
-
-/**
  * @param string $theme_key
  *   Name of the theme to start with.
  *
