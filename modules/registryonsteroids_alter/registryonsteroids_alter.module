@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * @file
+ * registryonsteroids_alter.module
+ */
+
+require_once __DIR__ . '/registryonsteroids_alter.helpers.inc';
+require_once __DIR__ . '/registryonsteroids_alter.alter.inc';
