@@ -403,12 +403,6 @@ function _registryonsteroids_process_theme_registry(array &$registry, array $the
         array_keys($variable_process_phases),
         array()
       );
-
-      // Sort the phase functions.
-      // @see https://www.drupal.org/node/2098551
-      foreach ($variable_process_phases as $phase_key => $phase) {
-        _registryonsteroids_registry_sort_phase_functions($registry[$hook][$phase_key], $hook, $phase, $themes);
-      }
     }
   }
 }
