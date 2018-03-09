@@ -1,9 +1,15 @@
 <?php
 
 /**
+ * @file
+ * registryonsteroids.admin.inc
+ */
+
+/**
  * Custom hook_menu callback.
  *
  * @return array
+ *   The configuration form.
  */
 function _registryonsteroids_admin_settings() {
   $form = array();

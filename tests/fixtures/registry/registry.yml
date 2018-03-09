@@ -1,0 +1,55 @@
+-
+  hook: ros0
+  definition:
+      variables:
+        text: ros_test_theme,
+      template: sites/all/modules/registryonsteroids/tests/modules/ros_test/ros0
+      type: module
+      theme path: sites/all/modules/registryonsteroids/tests/modules/ros_test
+      preprocess functions:
+        -
+          template_preprocess
+        -
+          ros_test_preprocess_ros0
+      process functions:
+        -
+          template_process
+
+-
+  hook: ros1
+  definition:
+      variables:
+        text: ros_test_theme,
+      template: sites/all/modules/registryonsteroids/tests/modules/ros_test/ros1
+      type: module
+      theme path: sites/all/modules/registryonsteroids/tests/modules/ros_test
+      preprocess functions:
+        -
+          template_preprocess
+        -
+          ros_test_preprocess_ros1
+      process functions:
+        -
+          template_process
+      includes: { }
+
+-
+  hook: ros2
+  definition:
+      variables:
+        text: ros_test_theme,
+      template: ros2
+      type: theme_engine
+      theme path: sites/all/themes/registryonsteroids/ros_theme
+      preprocess functions:
+        -
+          template_preprocess
+        -
+          ros_test_preprocess_ros2
+        -
+          ros_theme_preprocess_ros2
+      process functions:
+        -
+          template_process
+      path: sites/all/themes/registryonsteroids/ros_theme
+      includes: { }

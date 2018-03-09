@@ -1,0 +1,5 @@
+name = Registry On Steroïds test module
+description = Registry On Steroïds test module
+core = 7.x
+hidden = true
+dependencies[] = registryonsteroids

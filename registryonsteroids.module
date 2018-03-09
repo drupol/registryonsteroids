@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * registryonsteroids.module
+ */
+
 global $conf;
 
 // Auto-rebuild the theme registry.
@@ -31,10 +36,12 @@ function registryonsteroids_menu() {
 }
 
 /**
+ * @file
+ * Main module file.
+ */
+
+/**
  * Implements hook_module_implements_alter().
- *
- * @param array $implementations
- * @param string $hook
  */
 function registryonsteroids_module_implements_alter(array &$implementations, $hook) {
   if ('theme_registry_alter' === $hook) {
@@ -46,8 +53,6 @@ function registryonsteroids_module_implements_alter(array &$implementations, $ho
 
 /**
  * Implements hook_theme_registry_alter().
- *
- * @param array[] $registry
  */
 function registryonsteroids_theme_registry_alter(array &$registry) {
   // Get all themes.
@@ -220,7 +225,7 @@ function _registryonsteroids_theme_add_processors($hook, array &$info = array(),
     $info[$phase_key] = array_unique($info[$phase_key]);
 
     // Filter out functions that does not exist.
-    $info[$phase_key] = array_filter($info[$phase_key], '\function_exists');
+    $info[$phase_key] = array_values(array_filter($info[$phase_key], '\function_exists'));
 
     // Sadly we remove preprocess and process for hooks that provides
     // a theme function. (like the date module with date_display_single).
@@ -319,7 +324,6 @@ function drupal_get_hook_parents($hook) {
 
   // @todo Combination of non-multibyte strrpos() and multibyte drupal_substr()?
   while ($pos = strrpos($hook, '__')) {
-    /** @noinspection CallableParameterUseCaseInTypeContextInspection */
     // In theory, drupal_substr() can return FALSE. But not here. Promise.
     $parents[] = $hook = drupal_substr($hook, 0, $pos);
   }
@@ -328,6 +332,8 @@ function drupal_get_hook_parents($hook) {
 }
 
 /**
+ * Get the theme ancestors of a theme.
+ *
  * @param string $theme_key
  *   Name of the theme to start with.
  *
@@ -363,6 +369,8 @@ function _registryonsteroids_theme_get_ancestors($theme_key) {
 }
 
 /**
+ * Collect the theme ancestors of a theme.
+ *
  * @param string $theme_key
  *   Name of the theme to start with.
  * @param object[] $known_themes
