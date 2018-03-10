@@ -1,4 +1,3 @@
 name = Registry on steroids Alter
 description = Registry on steroids - Various alter hooks already implemented to help you theme your content.
 core = 7.x
-dependencies[] = registryonsteroids
