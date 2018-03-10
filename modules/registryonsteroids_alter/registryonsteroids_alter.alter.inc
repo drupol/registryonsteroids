@@ -117,3 +117,30 @@ function registryonsteroids_alter_page_alter(&$page) {
     }
   }
 }
+
+/**
+ * Implements hook_field_attach_view_alter().
+ */
+function atomium_field_attach_view_alter(&$output, $context) {
+  $suggestion_data = array(
+    'field_type',
+    'formatter',
+    'field_name',
+    'entity_type',
+    'view_mode',
+    'bundle',
+  );
+
+  foreach (element_children($output) as $key) {
+    $suggestions = array_filter(array_map(function ($suggestion) use ($output, $key) {
+      return isset($output[$key]['#' . $suggestion]) ? $output[$key]['#' . $suggestion] : NULL;
+    }, $suggestion_data));
+
+    if (isset($output[$key]['#theme']) && !empty($suggestions)) {
+      $output[$key]['#theme'] = _registryonsteroids_alter_extend_with_suggestions(
+        (array) $output[$key]['#theme'],
+        $suggestions
+      );
+    }
+  }
+}
