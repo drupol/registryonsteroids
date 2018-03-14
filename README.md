@@ -16,33 +16,68 @@ Example:
 
 You're using the Bartik core theme and you want to render the theme hook `node` and add some variants like its bundle name and its view mode.
 
-Instead of using `theme('node', [...]);`, you will use `theme('node__page__full', [...]);`.
+Instead of using `theme('node', [...]);`, you will use a variation of the `node` theme hook: `theme('node__page__full', [...]);`.
 
-Then, in your theme or module, you create a preprocess function: `[HOOK]_preprocess_node__page__full(&$variables, $hook);`.
+Then, in your theme or module, you create a preprocess function: `[HOOK]_preprocess_node__page__full(&$variables, $hook);` to only alter variables of that specific theme hook.
 
 When rendering your node, Drupal will run the preprocess callbacks in the following order:
 
 * [template_preprocess()](https://api.drupal.org/api/drupal/includes%21theme.inc/function/template_preprocess/7.x)
 * [template_preprocess_node()](https://api.drupal.org/api/drupal/modules%21node%21node.module/function/template_preprocess_node/7.x)
 * [bartik_preprocess_node()](https://api.drupal.org/api/drupal/themes%21bartik%21template.php/function/bartik_preprocess_node/7.x)
-* [HOOK]_preprocess_node__page__full()
 
 Once those preprocess are executed, Drupal will try to render the theme hook.
 The theme hook `node__page__full` doesn't exist per se, so Drupal will try to render its parent: `node__page`, but in our case, it doesn't exist either.
-So Drupal will iterate until a valid theme hook is found, in this case: `node`.
+So Drupal will iterate until a valid theme hook is found, in this case: `node`, the base hook.
 
-So far so good.
-
-But What happens if you want to apply the same preprocessing to all the node of type page regardless of the view mode ?
-
-The first idea is to create a specific preprocess: `[HOOK]_preprocess_node__page(&$variables, $hook)`
-Unfortunately, this preprocess will be completely ignored by Drupal.
+It seems that by default, Drupal never executes any variant theme (pre)processors.
+It only ever executes the (pre)processors callbacks from the base hook, in this case, this is `node`.
 
 This module fixes this behavior and let Drupal use intermediary or derivative preprocess/process callbacks.
 
 An issue is open since on drupal.org to fix this behavior, see [#2563445](https://www.drupal.org/node/2563445).
 
 This modules provides a configuration form where you can enable or disable the `theme_debug` option available [since Drupal 7.33](https://www.drupal.org/node/223440#theme-debug) and enable the rebuild of the registry at each page load.
+            
+# Steps to reproduce the issue locally:
+
+* Use admin theme `seven`.
+* Disable the module `registryonsteroids` and `registryonsteroids_alter`.
+* Enable contrib `devel` module.
+
+* Add functions to `themes/seven/template.php`:
+
+```php
+function seven_preprocess_node(array &$vars) {
+  dpm(__FUNCTION__);
+}
+
+function seven_preprocess_node__page(array &$vars) {
+  dpm(__FUNCTION__);
+}
+
+function seven_preprocess_node__page__full(array &$vars) {
+  dpm(__FUNCTION__);
+}
+```
+
+* Rebuild theme registry to let Drupal detect the new functions.
+
+* Create a node of type page and remember its node id.
+
+* Run this test code in `/devel/php`:
+```php
+$node = node_load(1); //  (1 is the node id of the node you just created)
+dpm($node, '$node');
+$element = node_view($node);
+dpm($element);
+$element['#theme'] = 'node__page__full';
+drupal_render($element);
+```
+
+* Enable module `registryonsteroids`
+             
+* Run the same test code and see the differences.
              
 # Submodules
 
