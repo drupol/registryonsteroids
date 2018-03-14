@@ -58,7 +58,12 @@ class CoreRegistryDefinitionsTest extends AbstractThemeTest {
    *   List of registry fixtures.
    */
   public function registryProvider() {
-    return Yaml::parseFile(__DIR__ . '/../../fixtures/core/registry/registry.yml');
+    $argss_indexed = Yaml::parseFile(__DIR__ . '/../../fixtures/core/registry/registry.yml');
+    $argss = array();
+    foreach ($argss_indexed as $i => $args) {
+      $argss[$i . ': ' . $args['hook']] = $args;
+    }
+    return $argss;
   }
 
   /**
@@ -78,7 +83,12 @@ class CoreRegistryDefinitionsTest extends AbstractThemeTest {
    *   List of registry fixtures.
    */
   public function renderProvider() {
-    return Yaml::parseFile(__DIR__ . '/../../fixtures/core/render/render.yml');
+    $argss_indexed = Yaml::parseFile(__DIR__ . '/../../fixtures/core/render/render.yml');
+    $argss = array();
+    foreach ($argss_indexed as $i => $args) {
+      $argss[$i . ': ' . $args['hook']] = $args;
+    }
+    return $argss;
   }
 
 }
