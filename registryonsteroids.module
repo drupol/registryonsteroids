@@ -58,7 +58,7 @@ function registryonsteroids_module_implements_alter(array &$implementations, $ho
  * @param array[] $registry
  *   Format: $[$theme_hook] = $info
  */
-function registryonsteroids_theme_registry_alter(array &$registry) {
+function registryonsteroids_theme_registry_alter__DISABLED(array &$registry) {
   // Figure out which theme this applies to.
   if (PHP_VERSION_ID >= 50400) {
     $trace = debug_backtrace(0, 3);
