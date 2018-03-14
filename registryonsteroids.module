@@ -46,9 +46,8 @@ function registryonsteroids_menu() {
  */
 function registryonsteroids_module_implements_alter(array &$implementations, $hook) {
   if ('theme_registry_alter' === $hook) {
-    $group = $implementations['registryonsteroids'];
     unset($implementations['registryonsteroids']);
-    $implementations['registryonsteroids'] = $group;
+    $implementations = array('registryonsteroids' => FALSE) + $implementations;
   }
 }
 
@@ -97,7 +96,6 @@ function registryonsteroids_theme_registry_alter(array &$registry) {
  *   The current theme.
  */
 function _registryonsteroids_theme_registry_alter(array &$registry, array $base_themes, $theme) {
-
   /**
    * @var string[][] $prefixes_by_type
    *   Format: $[$prefix_type][$prefix] = $prefix
@@ -246,16 +244,22 @@ function _registryonsteroids_theme_add_processors($hook, array &$info = array(),
   foreach (_registryonsteroids_theme_processors_phases() as $phase_key => $phase) {
     $callbacks = array();
 
-    foreach ($prefixes_data as $prefixes) {
-      foreach ($prefixes as $prefix) {
-        $callbacks[] = $prefix . '_' . $phase;
-        // This is the code that ensure preprocess/process inheritance.
-        // TODO here detect how to set 'theme path'.
-        array_map(
-          function ($hook) use (&$callbacks, $phase, $prefix) {
-            $callbacks[] = $prefix . '_' . $phase . '_' . $hook;
-          },
-          array_reverse($hooks_stack));
+    // Sadly we remove preprocess and process for hooks that provides
+    // a theme function. (like the date module with date_display_single).
+    // We could have this in but some modules badly implementing
+    // attributes handling would fail.
+    if (!isset($info['function'])) {
+      foreach ($prefixes_data as $prefixes) {
+        foreach ($prefixes as $prefix) {
+          $callbacks[] = $prefix . '_' . $phase;
+          // This is the code that ensure preprocess/process inheritance.
+          // TODO here detect how to set 'theme path'.
+          array_map(
+            function ($hook) use (&$callbacks, $phase, $prefix) {
+              $callbacks[] = $prefix . '_' . $phase . '_' . $hook;
+            },
+            array_reverse($hooks_stack));
+        }
       }
     }
 
@@ -271,19 +275,10 @@ function _registryonsteroids_theme_add_processors($hook, array &$info = array(),
     $info[$phase_key] = array_unique($info[$phase_key]);
 
     // Filter out functions that does not exist.
-    $info[$phase_key] = array_values(array_filter($info[$phase_key], '\function_exists'));
+    $info[$phase_key] = array_filter($info[$phase_key], '\function_exists');
 
-    // Sadly we remove preprocess and process for hooks that provides
-    // a theme function. (like the date module with date_display_single).
-    // We could have this in but some modules badly implementing
-    // attributes handling would fail.
-    if (isset($info['function'])) {
-      $info[$phase_key] = array_filter(
-        $info[$phase_key],
-        function ($function) use ($phase, $hook) {
-          return FALSE !== strpos($function, $phase . '_' . $hook);
-        });
-    }
+    // Reset index keys.
+    $info[$phase_key] = array_values($info[$phase_key]);
   }
 }
 
