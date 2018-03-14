@@ -32,6 +32,64 @@ function ros_test_theme() {
 }
 
 /**
+ * Implements hook_theme_registry_alter().
+ *
+ * @param array $theme_registry
+ */
+function ros_test_theme_registry_alter(array &$theme_registry) {
+
+  if (isset($theme_registry['ros2'])) {
+
+    // Make sure that the key is set.
+    $theme_registry['ros2'] += array('preprocess functions' => array());
+
+    // Remove a preprocess function.
+    foreach (array_keys($theme_registry['ros2']['preprocess functions'], 'system_preprocess_ros2') as $i) {
+      unset($theme_registry['ros2']['preprocess functions'][$i]);
+    }
+
+    // Prepend a preprocess function.
+    array_unshift($theme_registry['ros2']['preprocess functions'], '_ros_test_preprocess_ros2_custom_prepend');
+
+    // Append a preprocess function.
+    $theme_registry['ros2']['preprocess functions'][] = '_ros_test_preprocess_ros2_custom_append';
+
+    // Normalize array keys.
+    $theme_registry['ros2']['preprocess functions'] = array_values($theme_registry['ros2']['preprocess functions']);
+  }
+}
+
+/**
+ * This callback is removed in ros_test_theme_registry_alter().
+ *
+ * @param array $variables
+ * @param string $hook
+ */
+function system_preprocess_ros2(array &$variables, $hook) {
+  $variables['text'] .= __FUNCTION__ . ',';
+}
+
+/**
+ * This callback is prepended in ros_test_theme_registry_alter()
+ *
+ * @param array $variables
+ * @param string $hook
+ */
+function _ros_test_preprocess_ros2_custom_prepend(array &$variables, $hook) {
+  $variables['text'] .= __FUNCTION__ . ',';
+}
+
+/**
+ * This callback is appended in ros_test_theme_registry_alter()
+ *
+ * @param array $variables
+ * @param string $hook
+ */
+function _ros_test_preprocess_ros2_custom_append(array &$variables, $hook) {
+  $variables['text'] .= __FUNCTION__ . ',';
+}
+
+/**
  * Implements hook_preprocess_hook().
  */
 function ros_test_preprocess_ros0(&$variables, $hook) {

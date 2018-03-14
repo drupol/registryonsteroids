@@ -16,8 +16,10 @@
   hook: ros2
   render:
     - ros_test_theme
+    - _ros_test_preprocess_ros2_custom_prepend
     - ros_test_preprocess_ros2
     - ros_theme_preprocess_ros2
+    - _ros_test_preprocess_ros2_custom_append
     - ros_test_process_ros2
 
 -
@@ -26,6 +28,7 @@
     - ros_test_theme
     - ros_test_preprocess_ros2
     - ros_test_preprocess_ros2__variant1
+    - system_preprocess_ros2  # This should be removed, but isn't.
     - ros_theme_preprocess_ros2
     - ros_theme_preprocess_ros2__variant1
     - ros_test_process_ros2
@@ -36,6 +39,7 @@
   render:
     - ros_test_theme
     - ros_test_preprocess_ros2
+    - system_preprocess_ros2  # This should be removed, but isn't.
     - ros_theme_preprocess_ros2
     - ros_test_process_ros2
     - ros_test_process_ros2__variant2

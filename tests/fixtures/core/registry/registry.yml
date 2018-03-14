@@ -41,10 +41,12 @@
       type: theme_engine
       theme path: sites/all/themes/registryonsteroids/ros_theme
       preprocess functions:
+        - _ros_test_preprocess_ros2_custom_prepend
         - template_preprocess
         - contextual_preprocess
         - ros_test_preprocess_ros2
         - ros_theme_preprocess_ros2
+        - _ros_test_preprocess_ros2_custom_append
       process functions:
         - template_process
         - rdf_process
