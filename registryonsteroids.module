@@ -46,19 +46,15 @@ function registryonsteroids_menu() {
  */
 function registryonsteroids_module_implements_alter(array &$implementations, $hook) {
   if ('theme_registry_alter' === $hook) {
-    $group = $implementations['registryonsteroids'];
-    unset($implementations['registryonsteroids']);
-    $implementations['registryonsteroids'] = $group;
+    /* @see _registryonsteroids_first_theme_registry_alter() */
+    $implementations = array('registryonsteroids_first' => FALSE) + $implementations;
+
+    /* @see _registryonsteroids_last_theme_registry_alter() */
+    $implementations['registryonsteroids_last'] = FALSE;
   }
 }
 
-/**
- * Implements hook_theme_registry_alter().
- *
- * @param array[] $registry
- *   Format: $[$theme_hook] = $info
- */
-function registryonsteroids_theme_registry_alter(array &$registry) {
+function registryonsteroids_first_theme_registry_alter(array &$registry) {
   // Figure out which theme this applies to.
   if (PHP_VERSION_ID >= 50400) {
     $trace = debug_backtrace(0, 3);
@@ -81,22 +77,6 @@ function registryonsteroids_theme_registry_alter(array &$registry) {
 
   /* @see _theme_build_registry() */
   list($theme, $base_themes) = $trace[2]['args'];
-
-  // Apply Registry On Steroids sauce.
-  _registryonsteroids_theme_registry_alter($registry, $base_themes, $theme);
-}
-
-/**
- * Registry post process mechanism.
- *
- * @param array[] $registry
- *   The registry.
- * @param object[] $base_themes
- *   The base themes.
- * @param object $theme
- *   The current theme.
- */
-function _registryonsteroids_theme_registry_alter(array &$registry, array $base_themes, $theme) {
 
   /**
    * @var string[][] $prefixes_by_type
@@ -132,36 +112,25 @@ function _registryonsteroids_theme_registry_alter(array &$registry, array $base_
     // Iterate over each themes objects.
     // This is in order: the theme engine, the base theme(s), the current theme.
     foreach ($prefixes as $prefix) {
-      _registryonsteroids_theme_find_processors(
+      _registryonsteroids_theme_add_variants(
         $functions_by_first_fragment,
         $registry,
         $info,
         $prefix,
         $theme_hook
       );
+    }
+  }
+}
 
-      // Ensure "theme path" is set.
-      $info += array(
-        'theme path' => drupal_dirname($theme->filename),
-      );
+function registryonsteroids_last_theme_registry_alter(array &$registry) {
+  foreach ($registry as $theme_hook => &$info) {
+    $info += array('variants' => array());
 
-      // Remove this member so each hook is independent and doesn't depend or
-      // inherit of it's parent hook.
-      // This prevent many situations where the preprocess/process calls orders
-      // are not triggered at all or in the right order.
-      unset($info['base hook']);
+    foreach ($info['variants'] as $variant => $variant_info) {
+
     }
 
-    _registryonsteroids_theme_add_processors($theme_hook, $info, $prefixes_by_type);
-  }
-
-  // Reverse sort the registry.
-  krsort($registry);
-
-  // Registry optimization and includes fiddling.
-  // This cannot be included in the previous loop as the previous loop
-  // might create new members on the fly.
-  foreach ($registry as $theme_hook => &$info) {
     // Make sure the includes member of each hook is completed with its
     // parent hook.
     list($original_hook,) = explode('__', $theme_hook);
@@ -177,9 +146,6 @@ function _registryonsteroids_theme_registry_alter(array &$registry, array $base_
     // Optimize the registry.
     $info = array_filter($info);
   }
-
-  // Sort the registry.
-  ksort($registry);
 }
 
 /**
@@ -196,7 +162,7 @@ function _registryonsteroids_theme_registry_alter(array &$registry, array $base_
  * @param string $hook
  *   The theme hook being processed.
  */
-function _registryonsteroids_theme_find_processors(array $functions_by_first_fragment, array &$registry, array &$info, $prefix, $hook) {
+function _registryonsteroids_theme_add_variants(array $functions_by_first_fragment, array &$registry, array &$info, $prefix, $hook) {
   // The pattern to match.
   $pattern = isset($info['pattern']) ? $info['pattern'] : ($hook . '__');
 
@@ -219,13 +185,15 @@ function _registryonsteroids_theme_find_processors(array $functions_by_first_fra
     }
 
     foreach ($matches as $match) {
-      // Determine the current theme implementation.
-      $base_hook = drupal_substr($match, drupal_strlen($prefix_with_phase) + 1);
+      $matching_hook = drupal_substr($match, drupal_strlen($prefix_with_phase) + 1);
 
-      if (!isset($registry[$base_hook])) {
-        $registry[$base_hook] = $info;
-        $registry[$base_hook]['type'] = 'theme';
-      }
+      $parent_hooks = array_reverse(
+        _registryonsteroids_hook_get_parents(
+          $matching_hook
+        )
+      );
+
+      $registry[$parent_hooks[0]]['variants'][$matching_hook][$phase][] = $match;
     }
   }
 }
