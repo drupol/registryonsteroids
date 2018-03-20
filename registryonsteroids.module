@@ -46,19 +46,23 @@ function registryonsteroids_menu() {
  */
 function registryonsteroids_module_implements_alter(array &$implementations, $hook) {
   if ('theme_registry_alter' === $hook) {
-    $group = $implementations['registryonsteroids'];
-    unset($implementations['registryonsteroids']);
-    $implementations['registryonsteroids'] = $group;
+    /* @see _registryonsteroids_first_theme_registry_alter() */
+    $implementations = array('_registryonsteroids_first' => FALSE) + $implementations;
+
+    /* @see _registryonsteroids_last_theme_registry_alter() */
+    $implementations['_registryonsteroids_last'] = FALSE;
   }
 }
 
 /**
- * Implements hook_theme_registry_alter().
+ * Callback for hook_theme_registry_alter().
+ *
+ * Registered to run before all other implemntations.
  *
  * @param array[] $registry
  *   Format: $[$theme_hook] = $info
  */
-function registryonsteroids_theme_registry_alter(array &$registry) {
+function _registryonsteroids_first_theme_registry_alter(array &$registry) {
   // Figure out which theme this applies to.
   if (PHP_VERSION_ID >= 50400) {
     $trace = debug_backtrace(0, 3);
@@ -68,11 +72,12 @@ function registryonsteroids_theme_registry_alter(array &$registry) {
     // "Warning: debug_backtrace() expects at most 1 parameter, 2 given".
     $trace = debug_backtrace(0);
   }
-  if (!isset($trace[2]['function'], $trace[2]['args'][0]) || '_theme_build_registry' !== $trace[2]['function']) {
+  if (!isset($trace[2]['function'], $trace[2]['args'][0])
+    || '_theme_build_registry' !== $trace[2]['function']) {
     watchdog(
       'registryonsteroids',
       'hook_theme_registry_alter() was called from an unexpected place. We cannot determine which theme this registry belongs to. registryonsteroids functionality might not work.',
-      array(),
+      [],
       WATCHDOG_WARNING
     );
 
@@ -82,21 +87,22 @@ function registryonsteroids_theme_registry_alter(array &$registry) {
   /* @see _theme_build_registry() */
   list($theme, $base_themes) = $trace[2]['args'];
 
-  // Apply Registry On Steroids sauce.
-  _registryonsteroids_theme_registry_alter($registry, $base_themes, $theme);
-}
+  // Include all files registered as 'include' for theme hooks, so that
+  // get_defined_functions() finds all preprocess functions.
+  $include_files_map = array();
+  foreach ($registry as $info) {
+    if (isset($info['includes'])) {
+      foreach ($info['includes'] as $include_file) {
+        $include_files_map[$include_file] = $include_file;
+      }
+    }
+  }
 
-/**
- * Registry post process mechanism.
- *
- * @param array[] $registry
- *   The registry.
- * @param object[] $base_themes
- *   The base themes.
- * @param object $theme
- *   The current theme.
- */
-function _registryonsteroids_theme_registry_alter(array &$registry, array $base_themes, $theme) {
+  foreach ($include_files_map as $include_file) {
+    include_once DRUPAL_ROOT . '/' . $include_file;
+  }
+
+  $user_functions = get_defined_functions()['user'];
 
   /**
    * @var string[][] $prefixes_by_type
@@ -108,183 +114,271 @@ function _registryonsteroids_theme_registry_alter(array &$registry, array $base_
    * @var string[] $prefixes
    *   Format: $[$prefix] = $prefix
    */
-  $prefixes = array_merge($prefixes_by_type['module'], $prefixes_by_type['theme_engine'], $prefixes_by_type['base_theme'], $prefixes_by_type['theme']);
+  $prefixes = array_merge(...array_values($prefixes_by_type));
 
-  /**
-   * @var string[][] $functions_by_first_fragment
-   *   Format: $[$first_fragment][] = $function
-   */
-  $functions_by_first_fragment = _registryonsteroids_group_functions_by_prefix();
+  // Apply Registry On Steroids sauce.
+  _registryonsteroids_first_theme_registry_do_alter($registry, $base_themes, $theme, $user_functions, $prefixes);
+}
 
-  // Reverse sort the registry.
-  krsort($registry);
+/**
+ * Alter the registry - first part of the workflow.
+ *
+ * @param array[] $registry
+ * @param object[] $base_themes
+ * @param object $theme
+ * @param string[] $user_functions
+ * @param string[] $prefixes
+ */
+function _registryonsteroids_first_theme_registry_do_alter(array &$registry, array $base_themes, $theme, array $user_functions, array $prefixes) {
+  ksort($registry);
 
-  // Iterate over each registered hook.
-  foreach ($registry as $theme_hook => &$info) {
-    // The pattern to match.
-    $pattern = isset($info['pattern']) ? $info['pattern'] : ($theme_hook . '__');
+  $functions_by_hook_and_phase_and_weight = _registryonsteroids_group_functions_by_hook_and_phase_and_weight($user_functions, $prefixes);
+  $functions_by_hook_and_phase_and_weight += array('*' => array());
 
-    // Only process hooks that have not explicitly "turned off" patterns.
-    if (empty($pattern)) {
+  $declared_hooks = array_keys($registry);
+  $declared_hooks = array_combine($declared_hooks, $declared_hooks);
+
+  $declared_base_hooks = array();
+  $declared_root_hooks = array();
+  foreach ($registry as $hook => $info) {
+    $declared_root_hooks[$hook] = $hook;
+    if (isset($info['base hook']) && $hook !== $info['base hook']) {
+      $declared_root_hooks[$hook] = $hook;
+      $declared_base_hooks[$hook] = $info['base hook'];
+    }
+  }
+
+  $discovered_hooks = array_keys($functions_by_hook_and_phase_and_weight);
+  $discovered_hooks = array_combine($discovered_hooks, $discovered_hooks);
+  $discovered_undeclared_hooks = array_diff_key($discovered_hooks, $declared_hooks);
+  $discovered_undeclared_variants = preg_grep('@__@', $discovered_undeclared_hooks);
+
+  $functions_r_by_hook_and_phase = array();
+  foreach ($functions_by_hook_and_phase_and_weight as $hook => $functions_by_phase_and_weight) {
+    foreach ($functions_by_phase_and_weight as $phase => $functions_by_weight) {
+      $functions_r_by_hook_and_phase[$hook][$phase] = array_combine($functions_by_weight, $functions_by_weight);
+    }
+  }
+
+  $sortme = array();
+  foreach (array($declared_hooks, $discovered_undeclared_hooks) as $hooks) {
+    foreach ($hooks as $hook) {
+      $sortme[$hook . '__'] = $hook;
+      $sortme[$hook . '__|'] = FALSE;
+    }
+  }
+
+  ksort($sortme);
+
+  $trail = array();
+  $base_hooks = $declared_base_hooks;
+  $cascades = array();
+  $parent = '*';
+  $base_hook = '*';
+  $cascade = array();
+  foreach ($sortme as $hook_or_false) {
+    // Invariants:
+    // - $cascade is the cascade of $parent
+    // - $base_hook is the base hook of $parent
+    //   (with $base_hook === $parent, if it is a "root" hook)
+    // - $cascades[$trail[$i]] is known for each $i in $trail.
+    // - $base_hooks[$trail[$i]] is known for each $i in $trail.
+    if (FALSE === $hook_or_false) {
+      $parent = array_pop($trail);
+      $cascade = $cascades[$parent];
+      $base_hook = $base_hooks[$parent];
       continue;
     }
 
-    // Iterate over each themes objects.
-    // This is in order: the theme engine, the base theme(s), the current theme.
-    foreach ($prefixes as $prefix) {
-      _registryonsteroids_theme_find_processors(
-        $functions_by_first_fragment,
-        $registry,
-        $info,
-        $prefix,
-        $theme_hook
-      );
+    $trail[] = $parent;
+    $parent = $hook_or_false;
+    if (isset($declared_root_hooks[$parent])) {
+      $cascade = array($parent);
+      $base_hook = $parent;
+    }
+    elseif (!isset($base_hooks[$parent])) {
+      $cascade[] = $parent;
+      // $base_hook stays the same.
+    }
+    elseif ($base_hook === $base_hooks[$parent]) {
+      $cascade[] = $parent;
+      // $base_hook stays the same.
+    }
+    else {
+      $base_hook = $base_hooks[$parent];
+      $cascade = array($base_hook, $parent);
+    }
+    $cascades[$parent] = $cascade;
+    $base_hooks[$parent] = $base_hook;
+  }
 
-      // Ensure "theme path" is set.
-      $info += array(
-        'theme path' => drupal_dirname($theme->filename),
-      );
+  $registry_entries_to_add = array();
+  foreach ($discovered_undeclared_variants as $undeclared_variant) {
+    $base_hook = $undeclared_variant;
+    while (!isset($registry[$base_hook])) {
+      if (FALSE === $pos = strrpos($base_hook, '__')) {
+        break 2;
+      }
+      $base_hook = drupal_substr($base_hook, 0, $pos);
+    }
+    $base_hook_info = $registry[$base_hook];
+    while (!empty($base_hook_info['base hook'])) {
+      $base_hook = $base_hook_info['base hook'];
+      if (!isset($registry[$base_hook])) {
+        break 2;
+      }
+      $base_hook_info = $registry[$base_hook];
+    }
+    $registry_entry = $base_hook_info;
+    $registry_entry['base hook'] = $base_hook;
+    $registry_entries_to_add[$undeclared_variant] = $registry_entry;
+  }
 
-      // Remove this member so each hook is independent and doesn't depend or
-      // inherit of it's parent hook.
-      // This prevent many situations where the preprocess/process calls orders
-      // are not triggered at all or in the right order.
-      unset($info['base hook']);
+  $registry += $registry_entries_to_add;
+
+  $functionss_accum_by_basehook_and_phasekey_and_weight = array();
+  foreach ($functions_by_hook_and_phase_and_weight['*'] as $phase => $functions_by_weight) {
+    $phase_key = $phase . ' functions';
+    foreach ($declared_root_hooks as $hook) {
+      if (!empty($registry[$hook]['template'])) {
+        foreach ($functions_by_weight as $weight => $function) {
+          $functionss_accum_by_basehook_and_phasekey_and_weight[$hook][$phase_key][$weight][] = $function;
+        }
+        unset($weight, $function);
+      }
+    }
+    unset($phase_key, $hook);
+  }
+  unset($phase, $functions_by_weight);
+
+  foreach ($functions_by_hook_and_phase_and_weight as $hook => $functions_by_phase_and_weight) {
+    if ('*' === $hook) {
+      continue;
     }
 
-    _registryonsteroids_theme_add_processors($theme_hook, $info, $prefixes_by_type);
+    $base_hook = $base_hooks[$hook];
+    $cascade = $cascades[$hook];
+    array_pop($cascade);
+    foreach ($functions_by_phase_and_weight as $phase => $functions_by_weight) {
+      $phase_key = $phase . ' functions';
+      foreach ($functions_by_weight as $weight => $function) {
+        $functionss_accum_by_basehook_and_phasekey_and_weight[$base_hook][$phase_key][$weight][] = $function;
+      }
+    }
   }
 
-  // Reverse sort the registry.
-  krsort($registry);
+  foreach (_registryonsteroids_theme_processors_phases() as $phase_key => $phase) {
+    $phase_template_root_functions_r = isset($functions_r_by_hook_and_phase['*'][$phase])
+      ? $functions_r_by_hook_and_phase['*'][$phase]
+      : array();
+    $trail = array();
+    $parent = '*';
+    $base_hook = '*';
+    $removables_r_by_hook = array();
+    $removables_r = array();
 
-  // Registry optimization and includes fiddling.
-  // This cannot be included in the previous loop as the previous loop
-  // might create new members on the fly.
-  foreach ($registry as $theme_hook => &$info) {
-    // Make sure the includes member of each hook is completed with its
-    // parent hook.
-    list($original_hook,) = explode('__', $theme_hook);
-    $info += array('includes' => array());
-    $registry[$original_hook] += array('includes' => array());
-    $info['includes'] = array_unique(
-      array_merge(
-        (array) $info['includes'],
-        (array) $registry[$original_hook]['includes']
-      )
-    );
+    foreach ($sortme as $hook_or_false) {
+      if (FALSE === $hook_or_false) {
+        $parent = array_pop($trail);
+        $removables_r = $removables_r_by_hook[$parent];
+        continue;
+      }
 
-    // Optimize the registry.
-    $info = array_filter($info);
+      $trail[] = $parent;
+      $parent = $hook_or_false;
+
+      if (isset($declared_root_hooks[$parent])) {
+        $removables_r = array();
+        if (isset($functionss_accum_by_basehook_and_phasekey_and_weight[$parent][$phase_key])) {
+          $removables_r = array_merge(...$functionss_accum_by_basehook_and_phasekey_and_weight[$parent][$phase_key]);
+          $removables_r = array_combine($removables_r, $removables_r);
+          if (isset($registry[$parent]['template'])) {
+            if (array() !== $phase_template_root_functions_r) {
+              $removables_r = array_diff($removables_r, $phase_template_root_functions_r);
+            }
+          }
+        }
+      }
+      elseif (!isset($base_hooks[$parent]) || $base_hook === $base_hooks[$parent]) {
+        // $removables_r stays the same.
+        // $base_hook stays the same.
+      }
+      else {
+        $base_hook = $base_hooks[$parent];
+        $removables_r = $removables_r_by_hook[$base_hook];
+      }
+
+      if (isset($functions_r_by_hook_and_phase[$parent][$phase])) {
+        $removables_r = array_diff_key(
+          $removables_r,
+          $functions_r_by_hook_and_phase[$parent][$phase]);
+      }
+
+      $removables_r_by_hook[$parent] = $removables_r;
+      $registry[$parent]['registryonsteroids unset'][$phase_key] = $removables_r;
+    }
   }
 
-  // Sort the registry.
+  foreach ($functionss_accum_by_basehook_and_phasekey_and_weight as $hook => $functionss_by_phasekey_and_weight) {
+    if ('*' === $hook) {
+      continue;
+    }
+
+    foreach ($functionss_by_phasekey_and_weight as $phase_key => $functionss_by_weight) {
+      ksort($functionss_by_weight);
+      $registry[$hook][$phase_key] = array_merge(...$functionss_by_weight);
+    }
+  }
+
   ksort($registry);
 }
 
 /**
- * Find the processors callbacks.
+ * Callback for hook_theme_registry_alter()
  *
- * @param array $functions_by_first_fragment
- *   Functions from get_defined_functions(), keyed by first fragment.
- * @param array $registry
- *   The theme registry being processed.
- * @param array $info
- *   The current hook data.
- * @param string $prefix
- *   A prefix, e.g. a module name or theme name.
- * @param string $hook
- *   The theme hook being processed.
+ * Registered to run after all other implemntations.
+ *
+ * @param array[] $registry
+ *   Format: $[$theme_hook] = $info
  */
-function _registryonsteroids_theme_find_processors(array $functions_by_first_fragment, array &$registry, array &$info, $prefix, $hook) {
-  // The pattern to match.
-  $pattern = isset($info['pattern']) ? $info['pattern'] : ($hook . '__');
-
-  foreach (_registryonsteroids_theme_processors_phases() as $phase) {
-    // Find functions matching the specific theme and phase prefix.
-    $prefix_with_phase = $prefix . '_' . $phase;
-
-    // Grep only the functions which are within the prefix group.
-    list($first_prefix,) = explode('_', $prefix_with_phase, 2);
-
-    if (!isset($functions_by_first_fragment[$first_prefix])) {
-      continue;
-    }
-
-    if (!$matches = preg_grep(
-      '/^' . $prefix_with_phase . '_' . $pattern . '/',
-      $functions_by_first_fragment[$first_prefix]
-    )) {
-      continue;
-    }
-
-    foreach ($matches as $match) {
-      // Determine the current theme implementation.
-      $base_hook = drupal_substr($match, drupal_strlen($prefix_with_phase) + 1);
-
+function _registryonsteroids_last_theme_registry_alter(array &$registry) {
+  foreach ($registry as &$info) {
+    if (isset($info['base hook'])) {
+      $base_hook = $info['base hook'];
       if (!isset($registry[$base_hook])) {
-        $registry[$base_hook] = $info;
-        $registry[$base_hook]['type'] = 'theme';
+        // @todo Log this.
+        continue;
       }
+      $base_hook_info = $registry[$base_hook];
+      foreach (['preprocess functions', 'process functions'] as $phase_key) {
+        $info[$phase_key] = isset($base_hook_info[$phase_key])
+          ? $base_hook_info[$phase_key]
+          : [];
+      }
+
+      unset($info['base hook']);
     }
   }
-}
 
-/**
- * Add the processors to the hook.
- *
- * @param string $hook
- *   The current hook.
- * @param array $info
- *   The current hook data.
- * @param array $prefixes_data
- *   The prefixes.
- */
-function _registryonsteroids_theme_add_processors($hook, array &$info = array(), array $prefixes_data = array()) {
-  $hooks_stack = _registryonsteroids_hook_get_parents($hook);
+  foreach ($registry as &$info) {
+    if (!isset($info['registryonsteroids unset'])) {
+      continue;
+    }
 
-  foreach (_registryonsteroids_theme_processors_phases() as $phase_key => $phase) {
-    $callbacks = array();
-
-    foreach ($prefixes_data as $prefixes) {
-      foreach ($prefixes as $prefix) {
-        $callbacks[] = $prefix . '_' . $phase;
-        // This is the code that ensure preprocess/process inheritance.
-        // TODO here detect how to set 'theme path'.
-        array_map(
-          function ($hook) use (&$callbacks, $phase, $prefix) {
-            $callbacks[] = $prefix . '_' . $phase . '_' . $hook;
-          },
-          array_reverse($hooks_stack));
+    foreach ($info['registryonsteroids unset'] as $phase_key => $functions_to_remove) {
+      if (empty($info[$phase_key])) {
+        continue;
       }
+      $info[$phase_key] = array_values(
+        array_diff(
+          $info[$phase_key],
+          $functions_to_remove));
     }
 
-    // This is for dealing with modules implementing hook_theme_registry_alter.
-    // By doing this, I make sure that no process callbacks that has been added
-    // through this hook are lost.
-    $info[$phase_key] = array_merge(
-      $callbacks,
-      array_diff($info[$phase_key], $callbacks)
-    );
-
-    // Ensure uniqueness of functions.
-    $info[$phase_key] = array_unique($info[$phase_key]);
-
-    // Filter out functions that does not exist.
-    $info[$phase_key] = array_values(array_filter($info[$phase_key], '\function_exists'));
-
-    // Sadly we remove preprocess and process for hooks that provides
-    // a theme function. (like the date module with date_display_single).
-    // We could have this in but some modules badly implementing
-    // attributes handling would fail.
-    if (isset($info['function'])) {
-      $info[$phase_key] = array_filter(
-        $info[$phase_key],
-        function ($function) use ($phase, $hook) {
-          return FALSE !== strpos($function, $phase . '_' . $hook);
-        });
-    }
+    unset($info['registryonsteroids unset']);
   }
+
+  unset($registry['*']);
 }
 
 /**
@@ -339,41 +433,178 @@ function _registryonsteroids_theme_make_prefixes(array $base_themes, $theme) {
 }
 
 /**
- * Group all user functions by word before first underscore.
+ * Group functions by hook and phase, with inheritance.
  *
- * @return array
- *   Functions grouped by the first prefix.
+ * @param string[] $user_functions
+ * @param string[] $prefixes
+ *   A whitelist of prefixes (module names, themes, etc).
+ *
+ * @return string[][][]
+ *   Format: $[$hook][$phase][] = $function
+ *   E.g. $['block']['preprocess'][] = 'system_preprocess_block'.
  */
-function _registryonsteroids_group_functions_by_prefix() {
-  $functions = get_defined_functions();
-  $functions_by_first_fragment = array();
+function _registryonsteroids_group_functions_by_hook_and_phase_with_inheritance(array $user_functions, array $prefixes) {
+  $functions_by_hook_and_phase_and_weight = _registryonsteroids_group_functions_by_hook_and_phase_and_weight($user_functions, $prefixes);
 
-  // Splitting user defined functions into groups by the first prefix.
-  foreach ($functions['user'] as $function) {
-    list($first_fragment,) = explode('_', $function, 2);
-    $functions_by_first_fragment[$first_fragment][] = $function;
+  $functions_by_hook_and_phase_and_weight_extended = $functions_by_hook_and_phase_and_weight;
+  foreach ($functions_by_hook_and_phase_and_weight as $hook => $functions_by_phase) {
+    $functions_by_hook_and_phase_and_weight_extended[$hook . '__'] = TRUE;
+    $functions_by_hook_and_phase_and_weight_extended[$hook . '__|'] = FALSE;
   }
 
-  return $functions_by_first_fragment;
+  ksort($functions_by_hook_and_phase_and_weight_extended);
+
+  $keys = array_keys($functions_by_hook_and_phase_and_weight_extended);
+  $keymap = array_flip($keys);
+  $skipmap = array();
+  foreach ($keys as $i => $key) {
+    $entry = $functions_by_hook_and_phase_and_weight_extended[$key];
+    if (TRUE === $entry || FALSE === $entry) {
+      $skipmap[$i] = TRUE;
+    }
+  }
+
+  $functionss_by_hook_and_phase_and_weight_with_inheritance = array();
+  foreach ($keys as $i => $key) {
+    if (TRUE !== $functions_by_hook_and_phase_and_weight_extended[$key]) {
+      continue;
+    }
+    $end_key = $key . '|';
+    $i_end = $keymap[$end_key];
+    $parent_hook = $keys[$i - 1];
+    $parent_hook_functions_by_phase_and_weight = $functions_by_hook_and_phase_and_weight_extended[$parent_hook];
+
+    for ($j = $i - 1; $j < $i_end; ++$j) {
+      if (isset($skipmap[$j])) {
+        continue;
+      }
+      $hook_j = $keys[$j];
+      foreach ($parent_hook_functions_by_phase_and_weight as $phase => $functions_by_weight) {
+        foreach ($functions_by_weight as $weight => $function) {
+          $functionss_by_hook_and_phase_and_weight_with_inheritance[$hook_j][$phase][$weight][] = $function;
+        }
+      }
+    }
+  }
+
+  $functionss_by_hook_and_phase_with_inheritance = array();
+  foreach ($functionss_by_hook_and_phase_and_weight_with_inheritance as $hook => $functionss_by_phase_and_weight) {
+    foreach ($functionss_by_phase_and_weight as $phase => $functionss_by_weight) {
+      ksort($functionss_by_weight);
+      $functionss_by_hook_and_phase_with_inheritance[$hook][$phase] = array_merge(...$functionss_by_weight);
+    }
+  }
+
+  return $functionss_by_hook_and_phase_with_inheritance;
 }
 
 /**
- * Gets the parents of a hook.
+ * Group functions by hook, phase and weight.
  *
- * @param string $hook
- *   The hook, e.g. 'aaa__bbb__ccc'.
+ * @param string[] $user_functions
+ * @param string[] $prefixes
+ *   A whitelist of prefixes (module names, themes, etc).
  *
- * @return string[]
- *   The parent hooks, e.g. ['aaa__bbb__ccc', 'aaa__bbb', 'aaa'].
+ * @return string[][][]
+ *   Format: $[$hook][$phase][$weight] = $function
+ *   E.g. $['block']['preprocess'][51] = 'system_preprocess_block'.
  */
-function _registryonsteroids_hook_get_parents($hook) {
-  $parents = array($hook);
+function _registryonsteroids_group_functions_by_hook_and_phase_and_weight(array $user_functions, array $prefixes) {
+  $functions_by_prefix_and_phase_filtered = _registryonsteroids_group_functions_by_prefix_and_phase_filtered(
+    $user_functions,
+    $prefixes);
 
-  // @todo Combination of non-multibyte strrpos() and multibyte drupal_substr()?
-  while ($pos = strrpos($hook, '__')) {
-    // In theory, drupal_substr() can return FALSE. But not here. Promise.
-    $parents[] = $hook = drupal_substr($hook, 0, $pos);
+  $functions_by_hook_and_phase_and_weight = array();
+  $weight = 0;
+  foreach ($functions_by_prefix_and_phase_filtered as $functions_by_phase) {
+    foreach ($functions_by_phase as $phase => $functions_by_hook) {
+      foreach ($functions_by_hook as $hook => $function) {
+        $functions_by_hook_and_phase_and_weight[$hook][$phase][$weight] = $function;
+      }
+    }
+    ++$weight;
   }
 
-  return $parents;
+  ksort($functions_by_hook_and_phase_and_weight);
+
+  return $functions_by_hook_and_phase_and_weight;
+}
+
+/**
+ * Group functions by prefix and phase, but filtered.
+ *
+ * @param string[] $user_functions
+ * @param string[] $prefixes
+ *   A whitelist of prefixes (module names, themes, etc).
+ *
+ * @return string[][][]
+ *   Format: $[$prefix][$phase][$themehook] = $function
+ *   E.g. $['system']['preprocess']['block'] = 'system_preprocess_block'.
+ */
+function _registryonsteroids_group_functions_by_prefix_and_phase_filtered(array $user_functions, array $prefixes) {
+  $functions_by_prefix_and_phase = _registryonsteroids_group_functions_by_prefix_and_phase(
+    $user_functions);
+
+  // Only keep functions with known prefix.
+  $functions_by_prefix_and_phase_filtered = array();
+  foreach ($prefixes as $prefix) {
+    if (!isset($functions_by_prefix_and_phase[$prefix])) {
+      continue;
+    }
+    $functions_by_prefix_and_phase_filtered[$prefix] = $functions_by_prefix_and_phase[$prefix];
+  }
+
+  return $functions_by_prefix_and_phase_filtered;
+}
+
+/**
+ * Group functions by prefix and phase.
+ *
+ * @param string[] $user_functions
+ *
+ * @return string[][][]
+ *   Format: $[$prefix][$phase][$themehook] = $function
+ *   E.g. $['system']['preprocess']['block'] = 'system_preprocess_block'.
+ */
+function _registryonsteroids_group_functions_by_prefix_and_phase(array $user_functions) {
+  $candidate_functions = preg_grep('/process/', $user_functions);
+
+  $functions_by_prefix_and_phase = [];
+  foreach (array('preprocess', 'process') as $phase) {
+    $needle = '_' . $phase . '_';
+
+    $phase_functions = preg_grep('/_' . $phase . '_/', $candidate_functions);
+    foreach ($phase_functions as $function) {
+      $fragments = explode($needle, $function);
+      if (!isset($fragments[1])) {
+        // This should be unreachable code with the preg_grep() above.
+        continue;
+      }
+
+      if (!isset($fragments[2])) {
+        // This is the normal case with only one occurence of $needle.
+        list($prefix, $hook) = $fragments;
+        $functions_by_prefix_and_phase[$prefix][$phase][$hook] = $function;
+        continue;
+      }
+
+      // This is a rare case with more than one occurence of $needle.
+      // This doesn't have to be very fast, because it is rare.
+      $prefix = array_shift($fragments);
+      while (array() !== $fragments) {
+        $hook = implode($needle, $fragments);
+        $functions_by_prefix_and_phase[$prefix][$phase][$hook] = $function;
+        $prefix .= $needle . array_shift($fragments);
+      }
+    }
+
+    $phase_functions = preg_grep('/_' . $phase . '$/', $candidate_functions);
+    $substr_length = -drupal_strlen($phase) - 1;
+    foreach ($phase_functions as $function) {
+      $prefix = drupal_substr($function, 0, $substr_length);
+      $functions_by_prefix_and_phase[$prefix][$phase]['*'] = $function;
+    }
+  }
+
+  return $functions_by_prefix_and_phase;
 }

@@ -15,10 +15,9 @@
 -
   hook: ros2
   render:
+    - _ros_test_preprocess_ros2_custom_prepend
     - ros_test_preprocess_ros2
-    - system_preprocess_ros2  # This should not be here.
     - ros_theme_preprocess_ros2
-    - _ros_test_preprocess_ros2_custom_prepend  # This belongs further up.
     - _ros_test_preprocess_ros2_custom_append
     - _ros_test_phase0_ro_s2_custom_append
     - ros_test_process_ros2
@@ -27,12 +26,11 @@
 -
   hook: ros2__variant1
   render:
+    - _ros_test_preprocess_ros2_custom_prepend
     - ros_test_preprocess_ros2
     - ros_test_preprocess_ros2__variant1
-    - system_preprocess_ros2  # This should be removed, but isn't.
     - ros_theme_preprocess_ros2
     - ros_theme_preprocess_ros2__variant1
-    - _ros_test_preprocess_ros2_custom_prepend  # This belongs further up.
     - _ros_test_preprocess_ros2_custom_append
     - _ros_test_phase0_ro_s2_custom_append
     - ros_test_process_ros2
@@ -42,10 +40,9 @@
 -
   hook: ros2__variant2
   render:
+    - _ros_test_preprocess_ros2_custom_prepend
     - ros_test_preprocess_ros2
-    - system_preprocess_ros2  # This should be removed, but isn't.
     - ros_theme_preprocess_ros2
-    - _ros_test_preprocess_ros2_custom_prepend  # This belongs further up.
     - _ros_test_preprocess_ros2_custom_append
     - _ros_test_phase0_ro_s2_custom_append
     - ros_test_process_ros2
@@ -55,11 +52,11 @@
 -
   hook: ros3
   render:
-    # Missing: _ros_test_phase0_ro_s3_custom_append
+    - _ros_test_phase0_ro_s3_custom_append
     - theme_ros3
 
 -
   hook: ros3__variant1
   render:
-    # Missing: _ros_test_phase0_ro_s3_custom_append
+    - _ros_test_phase0_ro_s3_custom_append
     - theme_ros3
