@@ -5,7 +5,7 @@ namespace Drupal\registryonsteroids;
 /**
  * Contains data to build a modified theme registry entry.
  */
-class ThemeHookStub {
+final class ThemeHookStub {
 
   /**
    * The base hook.
