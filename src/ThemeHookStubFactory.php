@@ -5,7 +5,7 @@ namespace Drupal\registryonsteroids;
 /**
  * Creates ThemeHookStub objects.
  */
-class ThemeHookStubFactory {
+final class ThemeHookStubFactory {
 
   /**
    * The theme registry.
