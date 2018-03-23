@@ -3,13 +3,15 @@
 namespace Drupal\registryonsteroids;
 
 /**
- * Interface ThemeRegistryAltererInterface
+ * Interface ThemeRegistryAltererInterface.
  */
 interface ThemeRegistryAltererInterface {
+
   /**
    * Alter the Drupal's registry.
    *
    * @param array $registry
    */
   public function alter(array &$registry);
+
 }
