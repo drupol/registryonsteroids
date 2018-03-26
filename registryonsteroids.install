@@ -17,3 +17,33 @@ function registryonsteroids_uninstall() {
     }
   }
 }
+
+/**
+ * Implements hook_requirements().
+ */
+function registryonsteroids_requirements($phase) {
+  // Attempt to load the "any" dependencies module.
+  if (!module_exists('any')) {
+    module_enable(['any']);
+  }
+
+  // If "any" still doesn't exist then inform the user.
+  if (!module_exists('any')) {
+    $t = get_t();
+
+    $requirements["registryonsteroids-missing-any"] = array(
+      'title' => $t('Missing "any" dependency'),
+      'description' => $t('The module "registryonsteroids" requires the <a href="!url">!url</a> project. Please download and install it first.', array(
+        '!url' => 'https://www.drupal.org/project/any',
+      )),
+      'severity' => REQUIREMENT_ERROR,
+    );
+
+    return $requirements;
+  }
+
+  // Load the "any" module and let it perform requirement checks.
+  drupal_load('module', 'any');
+
+  return any_check_install_requirements($phase, 'registryonsteroids');
+}
