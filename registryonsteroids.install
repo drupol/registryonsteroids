@@ -17,3 +17,20 @@ function registryonsteroids_uninstall() {
     }
   }
 }
+
+/**
+ * Implements hook_enable().
+ */
+function registryonsteroids_enable() {
+  // Get the maximum weight.
+  $max_weight = db_query(
+    'SELECT MAX(weight) FROM {system}'
+  )->fetchField();
+
+  // Set our module to a weight 1 heavier,
+  // so ours moves lower in execution order.
+  db_update('system')
+    ->fields(array('weight' => $max_weight + 1))
+    ->condition('name', 'registryonsteroids', '=')
+    ->execute();
+}
