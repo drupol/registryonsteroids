@@ -48,16 +48,26 @@ final class ThemeRegistryAltererFirst implements ThemeRegistryAltererInterface {
    * {@inheritdoc}
    */
   public function alter(array &$registry) {
-    ksort($registry);
-
-    $stubs = $this->buildStubs($registry);
-
-    ksort($stubs);
-
-    $registry = array();
-    foreach ($stubs as $hook => $stub) {
-      $registry[$hook] = $stub->getRegistryEntry();
+    // Include all files registered as 'include' for theme hooks, so that
+    // get_defined_functions() finds all preprocess functions.
+    $include_files_map = array();
+    foreach ($registry as $info) {
+      if (isset($info['includes'])) {
+        foreach ($info['includes'] as $include_file) {
+          $include_files_map[$include_file] = $include_file;
+        }
+      }
     }
+
+    foreach ($include_files_map as $include_file) {
+      include_once DRUPAL_ROOT . '/' . $include_file;
+    }
+
+    $new_registry = array();
+    foreach ($this->buildStubs($registry) as $hook => $stub) {
+      $new_registry[$hook] = $stub->getRegistryEntry();
+    }
+    $registry = $new_registry;
   }
 
   /**
@@ -69,6 +79,8 @@ final class ThemeRegistryAltererFirst implements ThemeRegistryAltererInterface {
    * @return \Drupal\registryonsteroids\ThemeHookStub[]
    */
   private function buildStubs(array $registry) {
+    ksort($registry);
+
     $functions_by_hook_and_phasekey_and_weight = FunctionGroupUtil::groupFunctionsByHookAndPhasekeyAndWeight(
       get_defined_functions()['user'],
       array_merge(...array_values($this->makePrefixes($this->moduleList, $this->baseThemes, $this->theme)))
@@ -130,7 +142,6 @@ final class ThemeRegistryAltererFirst implements ThemeRegistryAltererInterface {
 
     /** @var \Drupal\registryonsteroids\ThemeHookStub[] $trail */
     $trail = array();
-
     /** @var \Drupal\registryonsteroids\ThemeHookStub[] $stubs */
     $stubs = array();
     /** @var \Drupal\registryonsteroids\ThemeHookStub|null $stub */
@@ -187,6 +198,8 @@ final class ThemeRegistryAltererFirst implements ThemeRegistryAltererInterface {
         $stubs[$hook] = $stub;
       }
     }
+
+    ksort($stubs);
 
     return $stubs;
   }

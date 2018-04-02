@@ -48,8 +48,8 @@ final class ThemeRegistryAltererLast implements ThemeRegistryAltererInterface {
       unset($info['registryonsteroids replace']);
     }
 
-    foreach (FunctionGroupUtil::PHASE_KEYS as $phase_key) {
-      foreach ($registry as &$info) {
+    foreach ($registry as &$info) {
+      foreach (FunctionGroupUtil::PHASE_KEYS as $phase_key) {
         if (!isset($info[$phase_key])) {
           continue;
         }
