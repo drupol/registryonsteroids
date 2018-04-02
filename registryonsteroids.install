@@ -42,11 +42,6 @@ function registryonsteroids_requirements($phase) {
   // Ensure translations don't break during installation.
   $t = get_t();
 
-  $implementations = module_implements('theme_registry_alter');
-
-  $first = array_shift($implementations);
-  $last = array_pop($implementations);
-
   $result = db_select('system', 's')
     ->fields('s', array('weight'))
     ->condition('name', 'registryonsteroids', '=')
@@ -60,6 +55,10 @@ function registryonsteroids_requirements($phase) {
     'value' => $t('Registry on steroids is properly installed. There is no need to update its current weight of @weight.', array('@weight' => $weight)),
     'description' => $t('In order to have a proper behavior, it needs to be the last to run its hook implementations.'),
   );
+
+  $implementations = module_implements('theme_registry_alter');
+  $first = array_shift($implementations);
+  $last = array_pop($implementations);
 
   if ('_registryonsteroids_first' !== $first || '_registryonsteroids_last' !== $last) {
     $requirements['registryonsteroids']['value'] = $t('Registry on steroids do not have the heaviest weight. It is likely that another module is superseding it. You must update and increase the weight of Registry on steroids in order to be the last to run.');
