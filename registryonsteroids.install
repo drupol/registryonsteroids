@@ -19,6 +19,17 @@ function registryonsteroids_uninstall() {
 }
 
 /**
+ * Implements hook_enable().
+ */
+function registryonsteroids_enable() {
+  // Set the weight of the module to a high arbitrary value.
+  db_update('system')
+    ->fields(array('weight' => 1031))
+    ->condition('name', 'registryonsteroids', '=')
+    ->execute();
+}
+
+/**
  * Implements hook_requirements().
  */
 function registryonsteroids_requirements($phase) {
