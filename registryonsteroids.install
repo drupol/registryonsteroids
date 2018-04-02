@@ -19,18 +19,37 @@ function registryonsteroids_uninstall() {
 }
 
 /**
- * Implements hook_enable().
+ * Implements hook_requirements().
  */
-function registryonsteroids_enable() {
-  // Get the maximum weight.
-  $max_weight = db_query(
-    'SELECT MAX(weight) FROM {system}'
-  )->fetchField();
+function registryonsteroids_requirements($phase) {
+  $requirements = array();
 
-  // Set our module to a weight 1 heavier,
-  // so ours moves lower in execution order.
-  db_update('system')
-    ->fields(array('weight' => $max_weight + 1))
+  // Ensure translations don't break during installation.
+  $t = get_t();
+
+  $implementations = module_implements('theme_registry_alter');
+
+  $first = array_shift($implementations);
+  $last = array_pop($implementations);
+
+  $result = db_select('system', 's')
+    ->fields('s', array('weight'))
     ->condition('name', 'registryonsteroids', '=')
     ->execute();
+  $weight = !empty($result) ? $result->fetchField() : 0;
+
+  // Test if the module is properly set
+  // in the module implementations order.
+  $requirements['registryonsteroids'] = array(
+    'title' => 'Registry on steroids',
+    'value' => $t('Registry on steroids is properly installed. There is no need to update its current weight of @weight.', array('@weight' => $weight)),
+    'description' => $t('In order to have a proper behavior, it needs to be the last to run its hook implementations.'),
+  );
+
+  if ('_registryonsteroids_first' !== $first || '_registryonsteroids_last' !== $last) {
+    $requirements['registryonsteroids']['value'] = $t('Registry on steroids do not have the heaviest weight. It is likely that another module is superseding it. You must update and increase the weight of Registry on steroids in order to be the last to run.');
+    $requirements['registryonsteroids']['severity'] = REQUIREMENT_ERROR;
+  }
+
+  return $requirements;
 }
