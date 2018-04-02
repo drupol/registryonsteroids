@@ -33,6 +33,10 @@ function registryonsteroids_enable() {
  * Implements hook_requirements().
  */
 function registryonsteroids_requirements($phase) {
+  if ('runtime' !== $phase) {
+    return;
+  }
+
   $requirements = array();
 
   // Ensure translations don't break during installation.
