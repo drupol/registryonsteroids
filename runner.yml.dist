@@ -22,8 +22,8 @@ drupal:
       drupal_http_request_fails: false
   post_install:
       - ./vendor/bin/drush --root=$(pwd)/build en composer_autoloader ros_theme -y
-      - ./vendor/bin/drush --root=$(pwd)/build dis help overlay update search color dashboard dblog help path -y
-      - ./vendor/bin/drush --root=$(pwd)/build pmu help overlay update search color dashboard dblog help path -y
+      - ./vendor/bin/drush --root=$(pwd)/build dis help overlay update search color dashboard dblog shortcut path -y
+      - ./vendor/bin/drush --root=$(pwd)/build pmu help overlay update search color dashboard dblog shortcut path -y
       - ./vendor/bin/drush --root=$(pwd)/build vset theme_default ros_theme
       - ./vendor/bin/drush --root=$(pwd)/build cc all
   drush:

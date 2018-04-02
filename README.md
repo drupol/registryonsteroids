@@ -1,8 +1,8 @@
 [![Build Status](https://travis-ci.org/drupol/registryonsteroids.svg?branch=7.x-1.x)](https://travis-ci.org/drupol/registryonsteroids)
 
-# Registry On Steroïds
+# Registry On Steroids
 
-Registry On Steroïds(ROS) discovers and adds additional theme preprocess/process functions for theme hook variants, if `theme()` is called with a variant name. E.g. for `theme('node__article__teaser', ..)`, it will call functions like `MYTHEME_preprocess_node__article__teaser()` and `MYTHEME_preprocess_node__article()` in addition to `MYTHEME_preprocess_node()`.
+Registry On Steroids(ROS) discovers and adds additional theme preprocess/process functions for theme hook variants, if `theme()` is called with a variant name. E.g. for `theme('node__article__teaser', ..)`, it will call functions like `MYTHEME_preprocess_node__article__teaser()` and `MYTHEME_preprocess_node__article()` in addition to `MYTHEME_preprocess_node()`.
 
 Without this module, only the process/preprocess functions of the base hook will be called, when a theme hook variant is executed. E.g. for `theme('node__article__teaser')`, only the preprocess and process functions for `'node'` are called. See [#2563445](https://www.drupal.org/node/2563445) in the issue queue for Drupal 7.
 
