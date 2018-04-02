@@ -33,8 +33,8 @@ function registryonsteroids_init() {
 function registryonsteroids_menu() {
   return array(
     'admin/config/development/registryonsteroids' => array(
-      'title' => 'Registry On Steroïds',
-      'description' => 'Registry On Steroïds configuration',
+      'title' => 'Registry On Steroids',
+      'description' => 'Registry On Steroids configuration',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('_registryonsteroids_admin_settings'),
       'access arguments' => array(
