@@ -77,7 +77,7 @@ function registryonsteroids_alter_form_alter(array &$form, array &$form_state, $
 /**
  * Custom callback.
  *
- * This function will update all form elements in a form and extend their
+ * This function will recursively alter all form elements and update their
  * #theme and #theme_wrappers properties.
  *
  * @param array $form

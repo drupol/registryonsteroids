@@ -22,6 +22,8 @@ function registryonsteroids_init() {
     drupal_theme_rebuild();
   }
 
+  // Set the theme_debug configuration variable.
+  // More info at https://www.drupal.org/node/223440
   $GLOBALS['conf']['theme_debug'] = variable_get('registryonsteroids_theme_debug', FALSE);
 }
 

@@ -1,5 +1,5 @@
 name = Registry on steroids
-description = Registry on steroids
+description = Registry on steroids discovers and adds additional theme preprocess/process functions for theme hook variants.
 core = 7.x
 configure = admin/config/development/registryonsteroids
 

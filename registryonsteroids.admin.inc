@@ -8,6 +8,11 @@
 /**
  * Custom hook_menu callback.
  *
+ * @param array $form
+ *   The form.
+ * @param array $form_state
+ *   The form state.
+ *
  * @return array
  *   The configuration form.
  */
