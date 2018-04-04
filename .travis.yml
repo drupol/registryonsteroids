@@ -15,12 +15,10 @@ env:
     - PATH=$PATH:/home/travis/.composer/vendor/bin:$TRAVIS_BUILD_DIR/vendor/bin
 
 install:
-  - sudo apt-get install apache2
   - composer self-update
   - composer install
 
 before_script:
-  # Install apache just to have the ab command.
   - phpenv config-rm xdebug.ini
   # Set sendmail so drush doesn't throw an error during site install.
   - echo "sendmail_path=`which true`" >> `php --ini | grep "Loaded Configuration" | awk '{print $4}'`
