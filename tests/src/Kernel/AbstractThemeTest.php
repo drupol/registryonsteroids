@@ -109,7 +109,7 @@ abstract class AbstractThemeTest extends AbstractTest {
       }
     }
 
-    return 'array(' . $php . "\n" . $indent . ')';
+    return '[' . $php . "\n" . $indent . ']';
   }
 
 }
