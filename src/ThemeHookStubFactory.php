@@ -57,7 +57,7 @@ final class ThemeHookStubFactory {
 
     $functions_by_phasekey_and_weight = isset($this->functionsByHookAndPhasekeyAndWeight[$hook])
       ? $this->functionsByHookAndPhasekeyAndWeight[$hook]
-      : array();
+      : [];
 
     if (NULL !== $parent) {
       return $parent->addVariant(
@@ -76,7 +76,7 @@ final class ThemeHookStubFactory {
       $functions_by_phasekey_and_weight,
       isset($info['template'])
         ? $this->templateFunctionsByPhasekeyAndWeight
-        : array());
+        : []);
   }
 
 }

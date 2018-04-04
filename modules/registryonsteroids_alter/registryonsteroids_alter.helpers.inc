@@ -120,11 +120,11 @@ function _registryonsteroids_alter_extend_value_with_suggestions($base, array $s
  *   The region where the block is placed.
  */
 function _registryonsteroids_alter_update_block_render_array(array &$block_array, $region = NULL) {
-  $suggestions_parts = array(
+  $suggestions_parts = [
     $region,
     $block_array['#block']->module,
     $block_array['#block']->delta,
-  );
+  ];
 
   if (isset($block_array['#theme'])) {
     $suggestions_parts = array_merge($suggestions_parts, (array) $block_array['#theme']);
@@ -156,7 +156,7 @@ function registryonsteroids_recursive_foreach(array &$variables, callable $callb
       registryonsteroids_recursive_foreach($value, $callback);
     }
 
-    call_user_func_array($callback, array($key, &$value, &$variables));
+    call_user_func_array($callback, [$key, &$value, &$variables]);
   }
 
   unset($variables['#ros_processed']);
@@ -196,11 +196,11 @@ function registryonsteroids_alter_menu_get_any_object() {
     }
 
     if (($obj = menu_get_object($entity_name, $arg_position)) && is_object($obj)) {
-      return array(
+      return [
         'entity' => $obj,
         'entity type' => $entity_name,
         'entity info' => $entity_info,
-      );
+      ];
     }
   }
 

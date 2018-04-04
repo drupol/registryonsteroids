@@ -12,7 +12,7 @@
  */
 function registryonsteroids_alter_element_info_alter(array &$elements) {
   foreach ($elements as &$element) {
-    _registryonsteroids_alter_extend_theme_wrappers_property_with_suggestions($element, array($element['#type']));
+    _registryonsteroids_alter_extend_theme_wrappers_property_with_suggestions($element, [$element['#type']]);
   }
 }
 
@@ -23,11 +23,11 @@ function registryonsteroids_alter_element_info_alter(array &$elements) {
  * @param string $type
  */
 function registryonsteroids_alter_entity_view_alter(array &$build, $type) {
-  $suggestions_parts = array(
+  $suggestions_parts = [
     isset($build['#entity_type']) ? $build['#entity_type'] : NULL,
     isset($build['#bundle']) ? $build['#bundle'] : NULL,
     isset($build['#view_mode']) ? $build['#view_mode'] : NULL,
-  );
+  ];
 
   _registryonsteroids_alter_extend_theme_property_with_suggestions($build, $suggestions_parts);
   _registryonsteroids_alter_extend_theme_wrappers_property_with_suggestions($build, $suggestions_parts);
@@ -42,7 +42,7 @@ function registryonsteroids_alter_entity_view_alter(array &$build, $type) {
  */
 function registryonsteroids_alter_form_alter(array &$form, array &$form_state, $form_id) {
   // Extend the #theme property of the form, at top level.
-  _registryonsteroids_alter_extend_theme_wrappers_property_with_suggestions($form, array($form_id));
+  _registryonsteroids_alter_extend_theme_wrappers_property_with_suggestions($form, [$form_id]);
 
   // Custom recursive function to alter all the #theme and #theme_wrappers keys
   // of form elements.
@@ -90,14 +90,14 @@ function _registryonsteroids_alter_form_element_theme_alter(array &$form, array 
   foreach (element_children($form) as $element_key) {
     if (isset($form[$element_key]['#type']) && empty($form[$element_key]['#defaults_loaded'])) {
       if ($info = element_info($form[$element_key]['#type'])) {
-        $suggestions_parts = array(
+        $suggestions_parts = [
           'form',
           $form_id,
           $element_key,
-        );
+        ];
 
         if (isset($info['#theme'])) {
-          $form[$element_key] += array('#theme' => $info['#theme']);
+          $form[$element_key] += ['#theme' => $info['#theme']];
           _registryonsteroids_alter_extend_theme_property_with_suggestions(
             $form[$element_key],
             $suggestions_parts
@@ -105,7 +105,7 @@ function _registryonsteroids_alter_form_element_theme_alter(array &$form, array 
         }
 
         if (isset($info['#theme_wrappers'])) {
-          $form[$element_key] += array('#theme_wrappers' => $info['#theme_wrappers']);
+          $form[$element_key] += ['#theme_wrappers' => $info['#theme_wrappers']];
           _registryonsteroids_alter_extend_theme_wrappers_property_with_suggestions(
             $form[$element_key],
             $suggestions_parts
@@ -124,7 +124,7 @@ function _registryonsteroids_alter_form_element_theme_alter(array &$form, array 
  * @param array $page
  */
 function registryonsteroids_alter_page_alter(array &$page) {
-  $suggestions_parts = array();
+  $suggestions_parts = [];
 
   // Add a suggestion if the current page is the front page.
   if (drupal_is_front_page()) {
@@ -161,11 +161,11 @@ function registryonsteroids_alter_page_alter(array &$page) {
           return;
         }
 
-        $block_suggestion_parts = array(
+        $block_suggestion_parts = [
           $value->region,
           $value->module,
           $value->delta,
-        );
+        ];
 
         _registryonsteroids_alter_extend_theme_property_with_suggestions(
           $parent,
@@ -195,17 +195,17 @@ function registryonsteroids_alter_page_alter(array &$page) {
  * @param array $output
  * @param array $context
  */
-function registryonsteroids_field_attach_view_alter(array &$output, array $context = array()) {
+function registryonsteroids_field_attach_view_alter(array &$output, array $context = []) {
   // Array properties of the render array field to use to extend the field
   // #theme property.
-  $suggestions_parts_names = array(
+  $suggestions_parts_names = [
     'field_type',
     'formatter',
     'field_name',
     'entity_type',
     'bundle',
     'view_mode',
-  );
+  ];
 
   foreach (element_children($output) as $key) {
     $suggestions_parts_values = array_map(
@@ -228,7 +228,7 @@ function registryonsteroids_field_attach_view_alter(array &$output, array $conte
  * @param array $items
  */
 function registryonsteroids_alter_contextual_links_view_alter(array &$element, array $items) {
-  $suggestions_parts = array();
+  $suggestions_parts = [];
 
   if (isset($element['#element']['#theme'])) {
     $suggestions_parts = (array) $element['#element']['#theme'];

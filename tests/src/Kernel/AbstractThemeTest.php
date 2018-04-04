@@ -20,7 +20,7 @@ abstract class AbstractThemeTest extends AbstractTest {
     $conf['theme_debug'] = FALSE;
     $conf['theme_default'] = 'ros_theme';
 
-    module_enable(array('ros_test'));
+    module_enable(['ros_test']);
   }
 
   /**
@@ -44,7 +44,7 @@ abstract class AbstractThemeTest extends AbstractTest {
    */
   private static function exportRegistryEntryNormalized(array $definition) {
 
-    foreach (array('preprocess functions', 'process functions') as $phase_key) {
+    foreach (['preprocess functions', 'process functions'] as $phase_key) {
       if (empty($definition[$phase_key])) {
         unset($definition[$phase_key]);
       }

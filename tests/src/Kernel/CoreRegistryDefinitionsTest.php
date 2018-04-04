@@ -14,7 +14,7 @@ class CoreRegistryDefinitionsTest extends AbstractThemeTest {
    */
   protected function setUp() {
     parent::setUp();
-    module_disable(array('registryonsteroids'));
+    module_disable(['registryonsteroids']);
   }
 
   /**

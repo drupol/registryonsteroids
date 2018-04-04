@@ -14,7 +14,7 @@ class RegistryDefinitionsTest extends AbstractThemeTest {
    */
   protected function setUp() {
     parent::setUp();
-    module_enable(array('registryonsteroids'));
+    module_enable(['registryonsteroids']);
   }
 
   /**

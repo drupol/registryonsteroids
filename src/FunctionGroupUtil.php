@@ -13,10 +13,10 @@ final class FunctionGroupUtil {
    * @var string[]
    *   Format: $[$phase_key] = $phase
    */
-  const PHASES = array(
+  const PHASES = [
     'preprocess functions' => 'preprocess',
     'process functions' => 'process',
-  );
+  ];
 
   /**
    * Array keys of the above.
@@ -26,10 +26,10 @@ final class FunctionGroupUtil {
    * @var string[]
    *   Format: $[] = $phase_key
    */
-  const PHASE_KEYS = array(
+  const PHASE_KEYS = [
     'preprocess functions',
     'process functions',
-  );
+  ];
 
   /**
    * Group functions by hook, phase and weight.
@@ -47,7 +47,7 @@ final class FunctionGroupUtil {
       $user_functions,
       $prefixes);
 
-    $functions_by_hook_and_phasekey_and_weight = array();
+    $functions_by_hook_and_phasekey_and_weight = [];
     $weight = 0;
     foreach ($functions_by_prefix_and_phasekey_filtered as $functions_by_phasekey) {
       foreach ($functions_by_phasekey as $phase_key => $functions_by_hook) {
@@ -79,7 +79,7 @@ final class FunctionGroupUtil {
       $user_functions);
 
     // Only keep functions with known prefix.
-    $functions_by_prefix_and_phasekey_filtered = array();
+    $functions_by_prefix_and_phasekey_filtered = [];
     foreach ($prefixes as $prefix) {
       if (!isset($functions_by_prefix_and_phasekey[$prefix])) {
         continue;
@@ -124,7 +124,7 @@ final class FunctionGroupUtil {
         // This is a rare case with more than one occurence of $needle.
         // This doesn't have to be very fast, because it is rare.
         $prefix = array_shift($fragments);
-        while (array() !== $fragments) {
+        while ([] !== $fragments) {
           $hook = implode($needle, $fragments);
           $functions_by_prefix_and_phasekey[$prefix][$phase_key][$hook] = $function;
           $prefix .= $needle . array_shift($fragments);
