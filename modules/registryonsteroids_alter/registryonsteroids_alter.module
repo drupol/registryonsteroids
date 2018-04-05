@@ -20,13 +20,13 @@ require_once __DIR__ . '/registryonsteroids_alter.alter.inc';
  */
 function registryonsteroids_alter_module_implements_alter(array &$implementations, $hook) {
   // List of alter hooks that we are implementing in this module.
-  $alter_hooks = array(
+  $alter_hooks = [
     'element_info_alter',
     'entity_view_alter',
     'form_alter',
     'page_alter',
     'field_attach_view_alter',
-  );
+  ];
 
   // Make sure this module run the last.
   if (in_array($hook, $alter_hooks, TRUE) && isset($implementations['registryonsteroids_alter'])) {

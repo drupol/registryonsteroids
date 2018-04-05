@@ -34,7 +34,7 @@ final class ThemeHookStub {
    * @var string[][]
    *   Format: $[$phase_key][$weight][] = $placeholder_or_function
    */
-  private $placeholderssByPhasekeyAndWeight = array();
+  private $placeholderssByPhasekeyAndWeight = [];
 
   /**
    * Replacements indexed by phase.
@@ -42,7 +42,7 @@ final class ThemeHookStub {
    * @var string[][]
    *   Format: $[$phase_key]['@' . $function] = $function
    */
-  private $replacementssByPhasekey = array();
+  private $replacementssByPhasekey = [];
 
   /**
    * Constructs a stub without parents ("root").
@@ -102,7 +102,7 @@ final class ThemeHookStub {
     }
 
     $variant->info['base hook'] = $this->baseHook;
-    $variant->placeholderssByPhasekeyAndWeight = array();
+    $variant->placeholderssByPhasekeyAndWeight = [];
 
     return $variant;
   }
@@ -119,7 +119,7 @@ final class ThemeHookStub {
       $info[$phase_key] = $placeholders_sorted;
     }
 
-    if (array() !== $this->replacementssByPhasekey) {
+    if ([] !== $this->replacementssByPhasekey) {
       $info['registryonsteroids replace'] = $this->replacementssByPhasekey;
     }
 
@@ -133,13 +133,13 @@ final class ThemeHookStub {
    *   Format: $[$phase_key][] = $function_or_placeholder
    */
   private function getPlaceholdersByPhasekeySorted() {
-    $placeholders_by_phasekey = array();
+    $placeholders_by_phasekey = [];
 
     foreach ($this->placeholderssByPhasekeyAndWeight as $phase_key => $placeholderss_by_weight) {
       ksort($placeholderss_by_weight);
-      $placeholders_by_phasekey[$phase_key] = array() !== $placeholderss_by_weight
+      $placeholders_by_phasekey[$phase_key] = [] !== $placeholderss_by_weight
         ? array_merge(...$placeholderss_by_weight)
-        : array();
+        : [];
     }
 
     return $placeholders_by_phasekey;

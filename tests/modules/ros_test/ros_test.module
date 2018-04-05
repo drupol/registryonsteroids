@@ -9,32 +9,32 @@
  * Implements hook_theme().
  */
 function ros_test_theme() {
-  return array(
-    'ros0' => array(
-      'variables' => array(
-        'callbacks' => array(),
-      ),
+  return [
+    'ros0' => [
+      'variables' => [
+        'callbacks' => [],
+      ],
       'template' => 'ros0',
-    ),
-    'ros1' => array(
-      'variables' => array(
-        'callbacks' => array(),
-      ),
+    ],
+    'ros1' => [
+      'variables' => [
+        'callbacks' => [],
+      ],
       'template' => 'ros1',
-    ),
-    'ros2' => array(
-      'variables' => array(
-        'callbacks' => array(),
-      ),
+    ],
+    'ros2' => [
+      'variables' => [
+        'callbacks' => [],
+      ],
       'template' => 'ros2',
-    ),
-    'ros3' => array(
-      'variables' => array(
-        'callbacks' => array(),
-      ),
+    ],
+    'ros3' => [
+      'variables' => [
+        'callbacks' => [],
+      ],
       // This one has a theme function.
-    ),
-  );
+    ],
+  ];
 }
 
 /**
@@ -61,7 +61,7 @@ function ros_test_theme_registry_alter(array &$theme_registry) {
 
   if (isset($theme_registry['ros2'])) {
     // Make sure that the key is set.
-    $theme_registry['ros2'] += array('preprocess functions' => array());
+    $theme_registry['ros2'] += ['preprocess functions' => []];
 
     // Remove a preprocess function.
     foreach (array_keys($theme_registry['ros2']['preprocess functions'], 'system_preprocess_ros2') as $i) {

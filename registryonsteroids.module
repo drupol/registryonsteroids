@@ -31,18 +31,18 @@ function registryonsteroids_init() {
  * @return array[]
  */
 function registryonsteroids_menu() {
-  return array(
-    'admin/config/development/registryonsteroids' => array(
+  return [
+    'admin/config/development/registryonsteroids' => [
       'title' => 'Registry On Steroids',
       'description' => 'Registry On Steroids configuration',
       'page callback' => 'drupal_get_form',
-      'page arguments' => array('_registryonsteroids_admin_settings'),
-      'access arguments' => array(
+      'page arguments' => ['_registryonsteroids_admin_settings'],
+      'access arguments' => [
         'administer site',
-      ),
+      ],
       'file' => 'registryonsteroids.admin.inc',
-    ),
-  );
+    ],
+  ];
 }
 
 /**
@@ -55,7 +55,7 @@ function registryonsteroids_menu() {
 function registryonsteroids_module_implements_alter(array &$implementations, $hook) {
   if ('theme_registry_alter' === $hook) {
     /* @see _registryonsteroids_first_theme_registry_alter() */
-    $implementations = array('_registryonsteroids_first' => FALSE) + $implementations;
+    $implementations = ['_registryonsteroids_first' => FALSE] + $implementations;
 
     /* @see _registryonsteroids_last_theme_registry_alter() */
     $implementations['_registryonsteroids_last'] = FALSE;
