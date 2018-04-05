@@ -68,7 +68,7 @@ function _registryonsteroids_alter_extend_theme_property_with_suggestions(array 
  *
  * @example
  *   $base = 'block';
- *   $suggestions_parts = array('system', 'main-menu');
+ *   $suggestions_parts = ['system', 'main-menu'];
  *
  *   The result will be: 'block__system__main_menu'
  *
