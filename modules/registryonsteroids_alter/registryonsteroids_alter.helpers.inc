@@ -18,13 +18,11 @@ function _registryonsteroids_alter_extend_theme_wrappers_property_with_suggestio
     return;
   }
 
-  $element['#theme_wrappers'] = array_map(
-    function ($theme_hook) use ($suggestions_parts) {
-      return _registryonsteroids_alter_extend_value_with_suggestions(
-        $theme_hook,
-        $suggestions_parts);
-    },
-    $element['#theme_wrappers']);
+  foreach ($element['#theme_wrappers'] as &$hook_or_hooks) {
+    _registryonsteroids_alter_extend_value_with_suggestions(
+      $hook_or_hooks,
+      $suggestions_parts);
+  }
 }
 
 /**
@@ -40,30 +38,17 @@ function _registryonsteroids_alter_extend_theme_property_with_suggestions(array 
     return;
   }
 
-  if (is_string($element['#theme'])) {
-    $element['#theme'] = _registryonsteroids_alter_extend_value_with_suggestions(
-      $element['#theme'],
-      $suggestions_parts);
-  }
-
-  if (is_array($element['#theme'])) {
-    $element['#theme'] = array_map(
-      function ($theme_hook) use ($suggestions_parts) {
-        return _registryonsteroids_alter_extend_value_with_suggestions(
-          $theme_hook,
-          $suggestions_parts);
-      },
-      $element['#theme']
-    );
-  }
+  _registryonsteroids_alter_extend_value_with_suggestions(
+    $element['#theme'],
+    $suggestions_parts);
 }
 
 /**
  * Extends strings with an array of suggestions.
  *
- * @param string $base
- *   The string to extend.
- * @param string[] $suggestions_parts
+ * @param string|string[] $hook_or_hooks
+ *   The hook or hooks to extend.
+ * @param string[] $suggestion_parts
  *   The suggestions to extend the base string with.
  *
  * @example
@@ -77,35 +62,39 @@ function _registryonsteroids_alter_extend_theme_property_with_suggestions(array 
  *   in drupal_group_functions_by_prefix() returns functions in lower case.
  *
  * @see http://php.net/manual/en/function.get-defined-functions.php
- *
- * @return array
- *   The extended strings.
  */
-function _registryonsteroids_alter_extend_value_with_suggestions($base, array $suggestions_parts) {
-  if (empty($base) || !is_string($base)) {
-    // Make sure we do not modify the $base parameter be returning it if doesn't
-    // pass this test.
-    return $base;
+function _registryonsteroids_alter_extend_value_with_suggestions(&$hook_or_hooks, array $suggestion_parts) {
+  $suggestion_parts = array_filter($suggestion_parts);
+
+  if ([] === $suggestion_parts) {
+    // Nothing to append.
+    return;
   }
 
-  array_unshift($suggestions_parts, $base);
+  // @todo Suffix calculation could be faster, if we would change the behavior a bit.
+  $suffix = '';
+  foreach ($suggestion_parts as $suggestion_part) {
+    $suggestion_part = preg_replace('@\W@', '_', $suggestion_part);
+    $suggestion_part = trim($suggestion_part, '_');
+    if ('' === $suggestion_part) {
+      continue;
+    }
+    $suffix .= '__' . $suggestion_part;
+  }
 
-  return str_replace(
-    '-',
-    '_',
-    drupal_strtolower(
-      implode(
-        '__',
-        array_map(
-          function ($suggestion_part) {
-            return trim($suggestion_part, '_');
-          },
-          array_filter(
-            $suggestions_parts
-          ))
-      )
-    )
-  );
+  if ('' === $suffix) {
+    return;
+  }
+
+  if (is_string($hook_or_hooks)) {
+    $hook_or_hooks .= $suffix;
+  }
+  elseif (is_array($hook_or_hooks)) {
+    // @todo Do we really want to append the suffix to every hook in the array?
+    foreach ($hook_or_hooks as &$hook) {
+      $hook .= $suffix;
+    }
+  }
 }
 
 /**
