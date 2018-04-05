@@ -72,14 +72,7 @@ function registryonsteroids_module_implements_alter(array &$implementations, $ho
  */
 function _registryonsteroids_first_theme_registry_alter(array &$registry) {
   // Figure out which theme this applies to.
-  if (PHP_VERSION_ID >= 50400) {
-    $trace = debug_backtrace(0, 3);
-  }
-  else {
-    // Second parameter not supported in PHP < 5.4.0. It would cause a
-    // "Warning: debug_backtrace() expects at most 1 parameter, 2 given".
-    $trace = debug_backtrace(0);
-  }
+  $trace = debug_backtrace(0, 3);
 
   if (!isset($trace[2]['function'], $trace[2]['args'][0])
     || '_theme_build_registry' !== $trace[2]['function']) {
