@@ -65,7 +65,8 @@ function registryonsteroids_module_implements_alter(array &$implementations, $ho
 /**
  * Callback for hook_theme_registry_alter().
  *
- * Registered to run before all other implemntations.
+ * This callback is registered through hook_module_implements_alter(), and runs
+ * before all other hook_theme_registry_alter() implementations.
  *
  * @param array[] $registry
  *   Format: $[$theme_hook] = $info
@@ -102,7 +103,8 @@ function _registryonsteroids_first_theme_registry_alter(array &$registry) {
 /**
  * Callback for hook_theme_registry_alter()
  *
- * Registered to run after all other implementations.
+ * This callback is registered through hook_module_implements_alter(), and runs
+ * after all other hook_theme_registry_alter() implementations.
  *
  * @param array[] $registry
  *   Format: $[$theme_hook] = $info
