@@ -64,36 +64,33 @@ function _registryonsteroids_alter_extend_theme_property_with_suggestions(array 
  * @see http://php.net/manual/en/function.get-defined-functions.php
  */
 function _registryonsteroids_alter_extend_value_with_suggestions(&$hook_or_hooks, array $suggestion_parts) {
-  $suggestion_parts = array_filter($suggestion_parts);
-
-  if ([] === $suggestion_parts) {
-    // Nothing to append.
-    return;
-  }
-
-  // @todo Suffix calculation could be faster, if we would change the behavior a bit.
-  $suffix = '';
-  foreach ($suggestion_parts as $suggestion_part) {
-    $suggestion_part = preg_replace('@\W@', '_', $suggestion_part);
-    $suggestion_part = trim($suggestion_part, '_');
-    if ('' === $suggestion_part) {
-      continue;
-    }
-    $suffix .= '__' . strtolower($suggestion_part);
-  }
-
-  if ('' === $suffix) {
-    return;
-  }
+  $make_suffix = function ($suggestion_parts) {
+    return strtolower(
+      implode(
+        '__',
+        array_filter(
+          array_map(
+            function ($suggestion_part) {
+              return trim(
+                preg_replace('@\W@', '_', $suggestion_part),
+                '_'
+              );
+            },
+            $suggestion_parts
+          )
+        )
+      )
+    );
+  };
 
   if (is_string($hook_or_hooks)) {
-    $hook_or_hooks .= $suffix;
+    $hook_or_hooks = $make_suffix(array_merge([$hook_or_hooks], $suggestion_parts));
   }
   elseif (is_array($hook_or_hooks)) {
     // @todo Do we really want to append the suffix to every hook in the array?
-    foreach ($hook_or_hooks as &$hook) {
-      $hook .= $suffix;
-    }
+    $hook_or_hooks = array_map(function ($hook) use (&$make_suffix, $suggestion_parts) {
+      return $make_suffix(array_merge([$hook], $suggestion_parts));
+    }, $hook_or_hooks);
   }
 }
 
