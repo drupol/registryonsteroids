@@ -79,7 +79,7 @@ function _registryonsteroids_alter_extend_value_with_suggestions(&$hook_or_hooks
     if ('' === $suggestion_part) {
       continue;
     }
-    $suffix .= '__' . $suggestion_part;
+    $suffix .= '__' . strtolower($suggestion_part);
   }
 
   if ('' === $suffix) {
