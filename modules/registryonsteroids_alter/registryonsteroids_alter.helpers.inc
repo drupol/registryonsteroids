@@ -64,33 +64,31 @@ function _registryonsteroids_alter_extend_theme_property_with_suggestions(array 
  * @see http://php.net/manual/en/function.get-defined-functions.php
  */
 function _registryonsteroids_alter_extend_value_with_suggestions(&$hook_or_hooks, array $suggestion_parts) {
-  $make_suffix = function ($suggestion_parts) {
-    return strtolower(
-      implode(
-        '__',
-        array_filter(
-          array_map(
-            function ($suggestion_part) {
-              return trim(
-                preg_replace('@\W@', '_', $suggestion_part),
-                '_'
-              );
-            },
-            $suggestion_parts
-          )
+  $suffix = strtolower(
+    implode(
+      '__',
+      array_filter(
+        array_map(
+          function ($suggestion_part) {
+            return trim(
+              preg_replace('@\W@', '_', $suggestion_part),
+              '_'
+            );
+          },
+          $suggestion_parts
         )
       )
-    );
-  };
+    )
+  );
 
   if (is_string($hook_or_hooks)) {
-    $hook_or_hooks = $make_suffix(array_merge([$hook_or_hooks], $suggestion_parts));
+    $hook_or_hooks .= '__' . $suffix;
   }
   elseif (is_array($hook_or_hooks)) {
     // @todo Do we really want to append the suffix to every hook in the array?
     $hook_or_hooks = array_map(
-      function ($hook) use (&$make_suffix, $suggestion_parts) {
-        return $make_suffix(array_merge([$hook], $suggestion_parts));
+      function ($hook) use ($suffix) {
+        return $hook . '__' . $suffix;
       },
       $hook_or_hooks
     );
