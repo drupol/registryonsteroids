@@ -88,9 +88,12 @@ function _registryonsteroids_alter_extend_value_with_suggestions(&$hook_or_hooks
   }
   elseif (is_array($hook_or_hooks)) {
     // @todo Do we really want to append the suffix to every hook in the array?
-    $hook_or_hooks = array_map(function ($hook) use (&$make_suffix, $suggestion_parts) {
-      return $make_suffix(array_merge([$hook], $suggestion_parts));
-    }, $hook_or_hooks);
+    $hook_or_hooks = array_map(
+      function ($hook) use (&$make_suffix, $suggestion_parts) {
+        return $make_suffix(array_merge([$hook], $suggestion_parts));
+      },
+      $hook_or_hooks
+    );
   }
 }
 
