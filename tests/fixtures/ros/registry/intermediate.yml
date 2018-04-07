@@ -56,6 +56,7 @@
         - ros_test_process_ros2
         - "@ros_test_process_ros2__variant1"
         - "@ros_test_process_ros2__variant2"
+        - "@ros_theme_process_ros2__variant2__foo"
       path: sites/all/themes/registryonsteroids/ros_theme
 
 -
