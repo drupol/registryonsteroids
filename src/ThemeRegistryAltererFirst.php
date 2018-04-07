@@ -165,6 +165,8 @@ final class ThemeRegistryAltererFirst implements ThemeRegistryAltererInterface {
       if (isset($declared_root_hooks[$hook])) {
         // $hook has no parents.
         $stub = $factory->createStub($hook);
+        // Set as base hook for subsequent hooks.
+        $base_hook = $hook;
       }
       elseif (!isset($base_hooks[$hook]) || $base_hook === $base_hooks[$hook]) {
         // $hook has the existing $stub as a parent, if that exists.
