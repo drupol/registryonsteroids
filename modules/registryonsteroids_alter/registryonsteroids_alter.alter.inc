@@ -132,11 +132,13 @@ function registryonsteroids_alter_page_alter(array &$page) {
   }
 
   // Add suggestions if an entity is found on the current page.
-  if ($entity = registryonsteroids_alter_menu_get_any_object()) {
-    $suggestions_parts[] = $entity['entity type'];
+  if (registryonsteroids_alter_menu_get_any_object()) {
+    // Find the node information back in the debug_backtrace().
+    $debug_backtrace = debug_backtrace(0, 4);
 
-    if (isset($entity['entity']->{$entity['entity info']['entity keys']['bundle']})) {
-      $suggestions_parts[] = $entity['entity']->{$entity['entity info']['entity keys']['bundle']};
+    if (isset($debug_backtrace[3])) {
+      $nodes = $debug_backtrace[3]['args'][0]['nodes'];
+      $suggestions_parts[] = $nodes[1]['#theme'];
     }
   }
 
