@@ -79,13 +79,13 @@ function _registryonsteroids_alter_extend_value_with_suggestions(&$hook_or_hooks
   }
 
   if (is_string($hook_or_hooks)) {
-    $hook_or_hooks .= '__' . $suffix;
+    $hook_or_hooks .= $suffix;
   }
   elseif (is_array($hook_or_hooks)) {
     // @todo Do we really want to append the suffix to every hook in the array?
     $hook_or_hooks = array_map(
       function ($hook) use ($suffix) {
-        return $hook . '__' . $suffix;
+        return $hook . $suffix;
       },
       $hook_or_hooks
     );
