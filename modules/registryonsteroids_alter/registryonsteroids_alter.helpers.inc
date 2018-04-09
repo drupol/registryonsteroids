@@ -66,9 +66,11 @@ function _registryonsteroids_alter_extend_theme_property_with_suggestions(array 
 function _registryonsteroids_alter_extend_value_with_suggestions(&$hook_or_hooks, array $suggestion_parts) {
   $suffix = '';
   foreach (array_filter($suggestion_parts) as $suggestion_part) {
-    $suggestion_part = trim(
-      preg_replace('@\W@', '_', $suggestion_part),
-      '_'
+    $suggestion_part = strtolower(
+      trim(
+        preg_replace('@\W@', '_', $suggestion_part),
+        '_'
+      )
     );
 
     if ('' === $suggestion_part) {
@@ -79,13 +81,13 @@ function _registryonsteroids_alter_extend_value_with_suggestions(&$hook_or_hooks
   }
 
   if (is_string($hook_or_hooks)) {
-    $hook_or_hooks .= '__' . $suffix;
+    $hook_or_hooks .= $suffix;
   }
   elseif (is_array($hook_or_hooks)) {
     // @todo Do we really want to append the suffix to every hook in the array?
     $hook_or_hooks = array_map(
       function ($hook) use ($suffix) {
-        return $hook . '__' . $suffix;
+        return $hook . $suffix;
       },
       $hook_or_hooks
     );
