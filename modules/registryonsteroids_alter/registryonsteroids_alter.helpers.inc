@@ -66,9 +66,11 @@ function _registryonsteroids_alter_extend_theme_property_with_suggestions(array 
 function _registryonsteroids_alter_extend_value_with_suggestions(&$hook_or_hooks, array $suggestion_parts) {
   $suffix = '';
   foreach (array_filter($suggestion_parts) as $suggestion_part) {
-    $suggestion_part = trim(
-      preg_replace('@\W@', '_', $suggestion_part),
-      '_'
+    $suggestion_part = strtolower(
+      trim(
+        preg_replace('@\W@', '_', $suggestion_part),
+        '_'
+      )
     );
 
     if ('' === $suggestion_part) {
