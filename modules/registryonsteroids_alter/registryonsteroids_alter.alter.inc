@@ -6,17 +6,6 @@
  */
 
 /**
- * Implements hook_element_info_alter().
- *
- * @param array $elements
- */
-function registryonsteroids_alter_element_info_alter(array &$elements) {
-  foreach ($elements as &$element) {
-    _registryonsteroids_alter_extend_theme_wrappers_property_with_suggestions($element, [$element['#type']]);
-  }
-}
-
-/**
  * Implements hook_entity_view_alter().
  *
  * @param array $build
