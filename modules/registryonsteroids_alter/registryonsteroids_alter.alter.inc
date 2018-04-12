@@ -7,13 +7,9 @@
 
 /**
  * Implements hook_entity_view_alter().
- *
- * @param array $build
- * @param string $type
  */
 function registryonsteroids_alter_entity_view_alter(array &$build, $type) {
   $suggestions_parts = [
-    isset($build['#entity_type']) ? $build['#entity_type'] : NULL,
     isset($build['#bundle']) ? $build['#bundle'] : NULL,
     isset($build['#view_mode']) ? $build['#view_mode'] : NULL,
   ];
