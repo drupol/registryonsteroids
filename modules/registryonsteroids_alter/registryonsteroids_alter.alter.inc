@@ -69,16 +69,9 @@ function _registryonsteroids_alter_form_alter_pre_render(array $form) {
 
 /**
  * Implements hook_page_alter().
- *
- * @param array $page
  */
 function registryonsteroids_alter_page_alter(array &$page) {
   $suggestions_parts = [];
-
-  // Add a suggestion if the current page is the front page.
-  if (drupal_is_front_page()) {
-    $suggestions_parts[] = 'front';
-  }
 
   // Add suggestions if an entity is found on the current page.
   if ($entity = registryonsteroids_alter_menu_get_any_object()) {
@@ -94,48 +87,48 @@ function registryonsteroids_alter_page_alter(array &$page) {
   // Extend the #theme_wrappers property of the page element.
   _registryonsteroids_alter_extend_theme_wrappers_property_with_suggestions($page, $suggestions_parts);
 
-  foreach (element_children($page) as $region_name) {
-    // Extend the #theme_wrappers property of each page region.
-    _registryonsteroids_alter_extend_theme_wrappers_property_with_suggestions(
-      $page[$region_name],
-      array_merge(
-        (array) $region_name,
-        $suggestions_parts));
+  $context = [
+    'suggestions parts' => $suggestions_parts,
+    'region' => '',
+  ];
 
-    // Extend the blocks that are inside each region.
-    registryonsteroids_recursive_foreach(
-      $page[$region_name],
-      function ($key, &$value, &$parent) use ($suggestions_parts) {
-        if ('#block' !== $key) {
-          return;
-        }
+  registryonsteroids_alter_recursive_element_children(
+    $page,
+    function (&$element, $element_key, &$context) {
+      $suggestions_parts = $context['suggestions parts'];
 
-        $block_suggestion_parts = [
-          $value->region,
-          $value->module,
-          $value->delta,
-        ];
-
-        _registryonsteroids_alter_extend_theme_property_with_suggestions(
-          $parent,
-          array_merge(
-            $block_suggestion_parts,
-            $suggestions_parts));
-
-        if (isset($parent['#theme'])) {
-          $block_suggestion_parts = array_merge(
-            (array) $parent['#theme'],
-            $block_suggestion_parts);
-        }
+      if (isset($element['#region'])) {
+        $region_suggestions_parts = $suggestions_parts;
+        array_unshift($region_suggestions_parts, $element['#region']);
 
         _registryonsteroids_alter_extend_theme_wrappers_property_with_suggestions(
-          $parent,
-          array_merge(
-            $block_suggestion_parts,
-            $suggestions_parts));
+          $element,
+          $region_suggestions_parts
+        );
+
+        $context['region'] = $element['#region'];
       }
-    );
-  }
+
+      if (isset($element['#block'])) {
+        $block_suggestion_parts = array_merge(
+          [$element['#block']->module, $element['#block']->delta],
+          [$context['region']],
+          $suggestions_parts);
+
+        _registryonsteroids_alter_extend_theme_property_with_suggestions(
+          $element,
+          $block_suggestion_parts
+        );
+
+        _registryonsteroids_alter_extend_theme_wrappers_property_with_suggestions(
+          $element,
+          $block_suggestion_parts
+        );
+      }
+    },
+    NULL,
+    $context
+  );
 }
 
 /**
