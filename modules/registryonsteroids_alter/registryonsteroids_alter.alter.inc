@@ -191,3 +191,28 @@ function registryonsteroids_alter_contextual_links_view_alter(array &$element, a
     );
   }, NULL, $context);
 }
+
+/**
+ * Implements hook_block_view_alter().
+ */
+function registryonsteroids_alter_block_view_alter(&$data, $block) {
+  if (NULL === $data || empty($data)) {
+    return;
+  }
+
+  $context = [
+    'block' => $block,
+    'suggestions parts' => [
+      drupal_is_front_page() ? 'front' : NULL,
+      $block->module,
+      $block->delta,
+    ],
+  ];
+
+  registryonsteroids_alter_recursive_element_children($data, function (&$element, $element_key, &$context) {
+    _registryonsteroids_alter_extend_theme_property_with_suggestions(
+      $element,
+      $context['suggestions parts']
+    );
+  }, NULL, $context);
+}
