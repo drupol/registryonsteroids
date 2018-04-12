@@ -122,33 +122,6 @@ function _registryonsteroids_alter_update_block_render_array(array &$block_array
 }
 
 /**
- * Custom utility callback that apply to each array element, a callback.
- *
- * Unlike array_walk_recursive, this function send the key name if a value is
- * an array.
- * As the value is passed by reference, you are able to modify its value within
- * the callback.
- *
- * @param array $variables
- *   The array.
- * @param callable $callback
- *   The callback function.
- */
-function registryonsteroids_recursive_foreach(array &$variables, callable $callback) {
-  $variables['#ros_processed'] = TRUE;
-
-  foreach ($variables as $key => &$value) {
-    if (is_array($value) && !isset($value['#ros_processed'])) {
-      registryonsteroids_recursive_foreach($value, $callback);
-    }
-
-    call_user_func_array($callback, [$key, &$value, &$variables]);
-  }
-
-  unset($variables['#ros_processed']);
-}
-
-/**
  * Try to find information about the current page being viewed.
  *
  * This function will detect if an entity is displayed.
