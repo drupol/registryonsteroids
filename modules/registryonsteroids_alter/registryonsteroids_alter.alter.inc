@@ -133,34 +133,38 @@ function registryonsteroids_alter_page_alter(array &$page) {
 
 /**
  * Implements hook_field_attach_view_alter().
- *
- * @param array $output
- * @param array $context
  */
-function registryonsteroids_field_attach_view_alter(array &$output, array $context = []) {
+function registryonsteroids_alter_field_attach_view_alter(array &$output, array $output_context = []) {
   // Array properties of the render array field to use to extend the field
   // #theme property.
-  $suggestions_parts_names = [
-    'field_type',
-    'formatter',
-    'field_name',
-    'entity_type',
-    'bundle',
-    'view_mode',
+  $context = [
+    'suggestions parts names' => [
+      '#field_type',
+      '#formatter',
+      '#field_name',
+      '#entity_type',
+      '#bundle',
+      '#view_mode',
+    ],
   ];
 
-  foreach (element_children($output) as $key) {
-    $suggestions_parts_values = array_map(
-      function ($suggestion) use ($output, $key) {
-        return isset($output[$key]['#' . $suggestion]) ? $output[$key]['#' . $suggestion] : NULL;
-      },
-      $suggestions_parts_names);
+  registryonsteroids_alter_recursive_element_children(
+    $output,
+    function (&$element, $element_key, &$context) {
+      $suggestions_parts_values = array_map(
+        function ($suggestion) use ($element, $element_key) {
+          return isset($element[$element_key][$suggestion]) ? $element[$element_key][$suggestion] : NULL;
+        },
+        $context['suggestions parts names']);
 
-    _registryonsteroids_alter_extend_theme_property_with_suggestions(
-      $output[$key],
-      $suggestions_parts_values
-    );
-  }
+      _registryonsteroids_alter_extend_theme_property_with_suggestions(
+        $element,
+        $suggestions_parts_values
+      );
+    },
+    NULL,
+    $context
+  );
 }
 
 /**
