@@ -192,3 +192,37 @@ function registryonsteroids_alter_menu_get_any_object() {
 
   return $return;
 }
+
+/**
+ * Recursive element_children() function.
+ *
+ * As the default element_children() from Drupal is fine for single dimension
+ * arrays, this function deal with multiple dimensions arrays.
+ * It applies a callback to each Drupal element found in it.
+ * The variable $context['parents'] of type string[] will hold the parents
+ * hierarchy of the element.
+ *
+ * @param array $root_element
+ *   The root element.
+ * @param callable $callback
+ *   A custom callback to apply to each element.
+ * @param string|null $root_element_key
+ *   The root element key.
+ * @param array $context
+ *   The context.
+ */
+function registryonsteroids_alter_recursive_element_children(array &$root_element, callable $callback, $root_element_key = NULL, array &$context = array()) {
+  $context += ['parents' => []];
+  $context['parents'][] = $root_element_key;
+
+  $callback($root_element, $root_element_key, $context);
+
+  foreach (element_children($root_element) as $sub_element_key) {
+    if (!is_array($root_element[$sub_element_key])) {
+      continue;
+    }
+    registryonsteroids_alter_recursive_element_children($root_element[$sub_element_key], $callback, $sub_element_key, $context);
+  }
+
+  array_pop($context['parents']);
+}
