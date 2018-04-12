@@ -169,9 +169,6 @@ function registryonsteroids_alter_field_attach_view_alter(array &$output, array 
 
 /**
  * Implements hook_contextual_links_view_alter().
- *
- * @param array $element
- * @param array $items
  */
 function registryonsteroids_alter_contextual_links_view_alter(array &$element, array $items) {
   $suggestions_parts = [];
@@ -183,5 +180,14 @@ function registryonsteroids_alter_contextual_links_view_alter(array &$element, a
     $suggestions_parts = array_merge($suggestions_parts, $element['#element']['#theme_wrappers']);
   }
 
-  _registryonsteroids_alter_extend_theme_property_with_suggestions($element, $suggestions_parts);
+  $context = [
+    'suggestions parts' => $suggestions_parts,
+  ];
+
+  registryonsteroids_alter_recursive_element_children($element, function (&$element, $element_key, &$context) {
+    _registryonsteroids_alter_extend_theme_property_with_suggestions(
+      $element,
+      $context['suggestions parts']
+    );
+  }, NULL, $context);
 }
