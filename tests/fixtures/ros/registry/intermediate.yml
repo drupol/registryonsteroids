@@ -98,3 +98,16 @@
       function: theme_ros3
       type: module
       theme path: sites/all/modules/registryonsteroids/tests/modules/ros_test
+
+-
+  hook: ros4
+  definition:
+      variables:
+        callbacks: { }
+      function: theme_ros4
+      preprocess functions:
+        - ros_test_preprocess_ros4
+        - ros_theme_preprocess_ros4
+        - "@ros_theme_preprocess_ros4__foo"
+      type: module
+      theme path: sites/all/themes/registryonsteroids/ros_theme
