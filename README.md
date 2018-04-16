@@ -4,9 +4,9 @@
 
 Registry On Steroids(ROS) discovers and adds additional theme preprocess/process functions for theme hook variants, if `theme()` is called with a variant name. E.g. for `theme('node__article__teaser', ..)`, it will call functions like `MYTHEME_preprocess_node__article__teaser()` and `MYTHEME_preprocess_node__article()` in addition to `MYTHEME_preprocess_node()`.
 
-Without this module, only the process/preprocess functions of the base hook will be called, when a theme hook variant is executed. E.g. for `theme('node__article__teaser')`, only the preprocess and process functions for `'node'` are called. See [#2563445](https://www.drupal.org/node/2563445) in the issue queue for Drupal 7.
+Without this module, only the process/preprocess functions of the base hook will be called when a theme hook variant is executed. E.g. for `theme('node__article__teaser')`, only the preprocess and process functions for `'node'` are called. See [#2563445](https://www.drupal.org/node/2563445) in the issue queue for Drupal 7.
 
-The module only has en effect if the theme hook is called with a variant hook name. It does not work for theme hook suggestions added to the `$variables` array.
+The module only has an effect if the theme hook is called with a variant hook name. It does not work for theme hook suggestions added to the `$variables` array.
 
 ## Background: Theme hook variants
 
@@ -16,7 +16,7 @@ Based on such theme hook variants, it might execute a specific template `node--a
 
 Drupal 7 has 4 ways of invoking theme hook variants:
 1. The `theme()` function can be called with an array of theme hooks, instead of a single theme hook, e.g. `theme(array('node__article__teaser', 'node__article', 'node'), ..)`.
-2. The `theme()` function can be called with a hook name containing double underscores, e.g. `theme('node__article__teaser')`. Drupal will try different substrings of the specified hook, until it finds an existing registered theme hook variant.
+2. The `theme()` function can be called with a hook name containing double underscores, e.g. `theme('node__article__teaser')`. Drupal will try different substrings of the specified hook until it finds an existing registered theme hook variant.
 3. The `theme()` function can be called with theme hook suggestions in the `$variables` array, e.g. `theme('node', $variables)` with `$variables['theme_hook_suggestions'] === array('node__article__teaser', 'node__article')`.
 4. After the `theme()` function is called, possibly with just the base hook `'node'`, preprocess functions can register an array of theme hook names or theme hook variant names in `$variables['theme_hook_suggestions']`. Later, these suggestions will be used to determine which template should be rendered, or which theme function should be executed.
 
@@ -42,50 +42,47 @@ The variant preprocess functions used to work (more or less) in Drupal 6, so thi
 
 This module modifies the theme registry in the following way:
 - Entries for base hooks are not changed.
-- Existing entries for variants, e.g. if a template like `node--article--teaser.tpl.php` was discovered, are modified so that variant-specific preprocess and process functions are called in addition to those of the base hook. Functions that were added by contrib modules, like `ds_entity_variables` added by Display Suite, are preserved, as if the module had added the function on the variant itself.
+- Existing entries for variants, e.g. if a template like `node--article--teaser.tpl.php` was discovered, are modified so that variant-specific preprocess and process functions are called in addition to those of the base hook. Functions that were added by contrib modules, like `ds_entity_variables` added by Display Suite, are preserved as if the module had added the function on the variant itself.
 - New variant entries are created for discovered preprocess/process functions where an entry does not exist yet. E.g. if a preprocess function `MYTHEME_preprocess_node__webform__full` is found, then a new entry for `$registry['node__webform__full']` and `$registry['node__webform']` will be created, even if no template like `node--webform--full.tpl.php` or `node--webform.tpl.php` exists.
 - Provides a configuration form where you can enable or disable the `theme_debug` option available [since Drupal 7.33](https://www.drupal.org/node/223440#theme-debug).
 - Provides an option to enable the rebuild of the registry at each page load.
 
 ## Submodule "registryonsteroids_alter"
 
-Currently hidden and in development, this submodule modifies render arrays in multiple Drupal places so that `$element['#theme']` refers to a hook variant instead of a base hook.
-Without this, the base module would have little effect.
+This module modifies render arrays in multiple Drupal places so that `$element['#theme']` refers to a hook variant instead of a base hook.
 
-E.g. When calling `theme('node', [...]);` to render a page node, this module will alter the render array and in the end,
-`theme('node__page__full', [...]);` will be used instead to render the page.
+We alter the render arrays to dynamically replace e.g. `'#theme' => 'node'` by `'#theme' => 'node__article__teaser'` based on the value that we found in the render array, e.g. node type, entity bundle and entity view mode.
 
-This will allow themers and designers to use particular preprocess/process callbacks like the following in this order:
+By default, Drupal calculate and set `$variables['theme_hook_suggestions']` during preprocess callbacks.
+Those callbacks are either added through a preprocess callback and/or either calculated using the `$element['#theme']` value.
 
-* `[HOOK]_preprocess_node(&$variables, $hook);`
-* `[HOOK]_preprocess_node__page(&$variables, $hook);`
-* `[HOOK]_preprocess_node__page__full(&$variables, $hook);`
+E.g:
+- [template_preprocess_node()](https://api.drupal.org/api/drupal/modules%21node%21node.module/function/template_preprocess_node/7.x)
+- [template_preprocess_entity()](http://www.drupalcontrib.org/api/drupal/contributions%21entity%21theme%21entity.theme.inc/function/template_preprocess_entity/7)
+- [ds_entity_variables()](http://www.drupalcontrib.org/api/drupal/contributions%21ds%21ds.module/function/ds_entity_variables/7)
 
-And it will also provides multiple templates suggestions:
+When updating and extending the value of `$element['#theme']`, Drupal will automatically update the `$variables['theme_hook_suggestions']` accordingly.
 
-* `node--page--full.tpl.php`
-* `node--page.tpl.php`
-* `node.tpl.php`
-
-The name "_registryonsteroids_alter_" might be subject to change in the next release.
+Without "_registryonsteroids_alter_", we would still get some or all of the template suggestions, depending which other modules are installed.
 
 # Installation
 
-- Manually: download the module and its dependencies
+- Manually: download the module with required dependencies
 - Composer: `composer require drupal/registryonsteroids`
 - Drush: `drush en registryonsteroids`
 
 # Dependencies
 
 - [xautoload](https://www.drupal.org/project/xautoload)
+- If the contrib module "[Alternatives](https://www.drupal.org/project/alternatives)" is available, the user is able to choose between the [xautoload](https://www.drupal.org/project/xautoload) or [registry_autoload](https://www.drupal.org/project/registry_autoload) PHP class loading suite.
 
 # More details
 
-When it comes to render a theme hook, through [a render array](https://www.drupal.org/docs/7/api/render-arrays/render-arrays-overview) or [the theme function](https://api.drupal.org/api/drupal/includes!theme.inc/function/theme/7.x), the Drupal's 7 default behavior is to run a set of callbacks for preprocess and a set of callback for process in [a particular order](https://api.drupal.org/api/drupal/includes!theme.inc/function/theme/7.x).
+When it comes to rendering a theme hook, through [a render array](https://www.drupal.org/docs/7/api/render-arrays/render-arrays-overview) or [the theme function](https://api.drupal.org/api/drupal/includes!theme.inc/function/theme/7.x), the Drupal's 7 default behavior is to run a set of callbacks for preprocessing and a set of callbacks to be processed in [a particular order](https://api.drupal.org/api/drupal/includes!theme.inc/function/theme/7.x).
 
-E.g. You're using the Bartik core theme and you want to render a `node` and add some variants like its bundle name and its view mode so you can use a specific template suggestion.
+E.g. You're using the Bartik core theme and you want to render a `node` using some new variants based on the bundle name and its view mode so you would be able to use specific template suggestion.
 
-Instead of using `theme('node', [...]);`, you will use a variation of the `node` theme hook: `theme('node__page__full', [...]);`.
+Instead of using `theme('node', [...]);`, you will be able to use added variant of the `node` theme hook like: `theme('node__page__full', [...]);`.
 
 Then, in your theme or module, you create a preprocess function: `[HOOK]_preprocess_node__page__full(&$variables, $hook);` to only alter variables of that specific theme hook variation.
 
@@ -100,7 +97,7 @@ The theme hook `node__page__full` does not exist per se, so Drupal will try to r
 So Drupal will continue and iterate until a valid theme hook is found, in this case: `node`, the very base hook.
 
 It seems that by default, Drupal never executes any variant theme (pre)processors.
-It only ever executes the (pre)processors callbacks from the very base hook, in this case, this is `node`.
+It only ever executes the (pre)processors callbacks from the very base hook, in this case, it is a `node`.
 
 This module updates this default behavior and let Drupal use "_intermediary_" or "_derivative_" preprocess/process callbacks.
 
@@ -149,9 +146,9 @@ drupal_render($element);
 # History
 
 The code of this module comes from [Atomium](https://www.drupal.org/project/atomium), a Drupal 7 base theme that implements all of this in a theme.
-Started as a proof of concept, the idea behind this module is to remove from Atomium the code that alter the theme registry and make it available for anyone through a module so every Drupal 7 site is able to enjoy these enhancements.
+Started as a proof of concept, the idea behind this module is to remove from Atomium the code that alters the theme registry and make it available for anyone through a module so every Drupal 7 site is able to enjoy these enhancements.
 
-Then the idea of the module has been shared with [Andreas Hennings](https://www.drupal.org/u/donquixote) who rewrote the algorithm and made it even more consistent using object oriented programming.
+Then the idea of the module has been shared with [Andreas Hennings](https://www.drupal.org/u/donquixote) who rewrote the algorithm and made it even more consistent using object-oriented programming.
 
 # Issues to follow
 
@@ -170,7 +167,7 @@ To run the tests locally:
 * `git clone https://github.com/drupol/registryonsteroids.git`
 * `composer install`
 
-Then if you want to modify the default settings of the Drupal installation, please copy the file `runner.yml.dist` into `runner.yml` and update that file according to your configuration.
+Then if you want to modify the default settings of the Drupal installation, please copy the file `runner.yml.dist` into `runner.yml` and update that file accordingly to your configuration.
 
 * `./vendor/bin/run drupal:site-install`
 
@@ -192,3 +189,4 @@ Then, you are able to run the tests:
 # Contributors
 
 * [Mark Carver](https://www.drupal.org/u/markcarver)
+* [Robert Czarny](https://www.drupal.org/u/netlooker)
