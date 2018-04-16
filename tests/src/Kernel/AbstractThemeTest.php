@@ -43,7 +43,6 @@ abstract class AbstractThemeTest extends AbstractTest {
    * @return string
    */
   private static function exportRegistryEntryNormalized(array $definition) {
-
     foreach (['preprocess functions', 'process functions'] as $phase_key) {
       if (empty($definition[$phase_key])) {
         unset($definition[$phase_key]);
@@ -87,7 +86,6 @@ abstract class AbstractThemeTest extends AbstractTest {
    * @return string
    */
   private static function exportArray(array $array, $indent = '') {
-
     $indent2 = $indent . '    ';
 
     $php = '';
