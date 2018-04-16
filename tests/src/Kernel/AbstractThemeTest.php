@@ -17,6 +17,7 @@ abstract class AbstractThemeTest extends AbstractTest {
 
     global $conf;
 
+    theme_enable(['ros_theme']);
     $conf['theme_debug'] = FALSE;
     $conf['theme_default'] = 'ros_theme';
 
