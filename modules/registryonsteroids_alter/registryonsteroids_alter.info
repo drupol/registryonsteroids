@@ -2,6 +2,4 @@ name = Registry on steroids alter
 description = Dynamically modifies <code>#theme</code> and <code>#theme_wrappers</code> properties of various render arrays to use theme hook suggestions.
 core = 7.x
 php = 5.6
-hidden = true
-; The dependency to the parent module 'registryonsteroids' is not mandatory.
-; But if you want to use the benefits this module can bring, then it's better to enable it as well.
+dependencies[] = registryonsteroids
