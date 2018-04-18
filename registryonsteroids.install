@@ -34,7 +34,7 @@ function registryonsteroids_enable() {
  */
 function registryonsteroids_requirements($phase) {
   if ('runtime' !== $phase) {
-    return;
+    return [];
   }
 
   $requirements = [];
