@@ -19,8 +19,10 @@
  *
  * @return mixed
  */
-function registryonsteroids_menu_tree($menu_name, array $context = array()) {
-  $menu_output = &drupal_static(__FUNCTION__, array());
+function registryonsteroids_menu_tree($menu_name, array $context = []) {
+  $menu_output = &drupal_static(__FUNCTION__, []);
+
+  $context['menu_name'] = $menu_name;
 
   if (!isset($menu_output[$menu_name])) {
     $menu_output[$menu_name] = registryonsteroids_menu_tree_output(
@@ -46,27 +48,26 @@ function registryonsteroids_menu_tree($menu_name, array $context = array()) {
  *
  * @return array
  */
-function registryonsteroids_menu_tree_output(array $tree, array $context = array()) {
+function registryonsteroids_menu_tree_output(array $tree, array $context = []) {
   // Call to the original function.
   $build = menu_tree_output($tree);
 
   // Alteration of the menu build array.
-  registryonsteroids_alter_recursive_menu_tree($build, function (&$element, $key, $recursive_context) use ($context) {
-    $context += array(
-      'suggestions' => array(),
-      'level' => 0,
-    );
-    $context['suggestions'][] = 'level' . $recursive_context['level'];
+  registryonsteroids_alter_recursive_menu_tree(
+    $build,
+    function (&$element, $key, $recursive_context) use ($context) {
+      $element += ['#pre_render' => []];
+      $element['#pre_render']['_registryonsteroids_alter_element_pre_render'] = '_registryonsteroids_alter_element_pre_render';
+      _registryonsteroids_alter_add_default_pre_render($element);
 
-    _registryonsteroids_alter_extend_theme_property_with_suggestions(
-      $element,
-      $context['suggestions']
-    );
-    _registryonsteroids_alter_extend_theme_wrappers_property_with_suggestions(
-      $element,
-      $context['suggestions']
-    );
-  });
+      $element['#registryonsteroids']['suggestions']['theme'] = [
+        $context['block']->module,
+        $context['block']->delta,
+        $context['block']->region,
+        'level' . $recursive_context['level'],
+      ];
+    }
+  );
 
   return $build;
 }
