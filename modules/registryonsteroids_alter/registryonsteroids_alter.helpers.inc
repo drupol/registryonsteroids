@@ -199,3 +199,37 @@ function registryonsteroids_alter_recursive_element_children(array &$root_elemen
 
   array_pop($context['parents']);
 }
+
+/**
+ * Recursive function that goes through all children of a Drupal's menu build.
+ *
+ * @param array $root_element
+ *   The root element.
+ * @param callable $callback
+ *   A custom callback to apply to each element.
+ * @param string|null $root_element_key
+ *   The root element key.
+ * @param array $context
+ *   The context.
+ */
+function registryonsteroids_alter_recursive_menu_tree(array &$root_element, callable $callback, $root_element_key = NULL, array &$context = array()) {
+  $context += array('level' => 0);
+
+  $callback($root_element, $root_element_key, $context);
+
+  foreach (element_children($root_element) as $sub_element_key) {
+    if (!is_array($root_element[$sub_element_key])) {
+      continue;
+    }
+
+    registryonsteroids_alter_recursive_menu_tree($root_element[$sub_element_key], $callback, $sub_element_key, $context);
+
+    if (!isset($root_element[$sub_element_key]['#below'])) {
+      continue;
+    }
+
+    $context['level']++;
+    registryonsteroids_alter_recursive_menu_tree($root_element[$sub_element_key]['#below'], $callback, $sub_element_key, $context);
+    $context['level']--;
+  }
+}

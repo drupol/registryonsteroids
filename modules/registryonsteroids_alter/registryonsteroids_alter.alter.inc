@@ -191,3 +191,28 @@ function registryonsteroids_alter_contextual_links_view_alter(array &$element, a
     );
   }, NULL, $context);
 }
+
+/**
+ * Implements hook_block_view_alter().
+ */
+function registryonsteroids_alter_block_view_alter(&$data, $block) {
+  if ($block->module === 'system' && !empty($data['content'])) {
+    $menus = menu_get_menus(TRUE);
+
+    if (isset($menus[$block->delta])) {
+      $content = registryonsteroids_menu_tree(
+        $block->delta,
+        array(
+          'block' => $block,
+          'suggestions' => array(
+            $block->region,
+            $block->module,
+          ),
+        )
+      );
+      $content['#contextual_links'] = $data['content']['#contextual_links'];
+
+      $data['content'] = $content;
+    }
+  }
+}
