@@ -36,7 +36,7 @@
     "drupal/drupal-extension": "~3.4",
     "drupal/devel": "*",
     "drupal/xautoload": "*",
-    "openeuropa/task-runner": "^0.4",
+    "openeuropa/task-runner": "^0.6",
     "drupal/coder": "^8.2"
   },
   "autoload": {
