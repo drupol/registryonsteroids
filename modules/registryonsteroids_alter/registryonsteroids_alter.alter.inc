@@ -110,22 +110,24 @@ function registryonsteroids_alter_block_view_alter(&$data, $block) {
   _registryonsteroids_alter_add_default_pre_render_variables($data);
 
   // Specific handling for core menu blocks.
-  if ($block->module === 'system') {
-    $menus = menu_get_menus(TRUE);
+  if (module_exists('menu')) {
+    if ($block->module === 'system') {
+      $menus = menu_get_menus(TRUE);
 
-    if (isset($menus[$block->delta])) {
-      $content = registryonsteroids_menu_tree(
-        $block->delta,
-        [
-          'block' => $block,
-          'suggestions parts' => [],
-        ]
-      );
-      $content['#contextual_links'] = $data['content']['#contextual_links'];
-      $data['content'] = $content;
+      if (isset($menus[$block->delta])) {
+        $content = registryonsteroids_menu_tree(
+          $block->delta,
+          [
+            'block' => $block,
+            'suggestions parts' => [],
+          ]
+        );
+        $content['#contextual_links'] = $data['content']['#contextual_links'];
+        $data['content'] = $content;
 
-      // Delete this to avoid duplicates later.
-      $block_theme_suggestions = (array) $data['content']['#registryonsteroids']['suggestions']['theme'];
+        // Delete this to avoid duplicates later.
+        $block_theme_suggestions = (array) $data['content']['#registryonsteroids']['suggestions']['theme'];
+      }
     }
   }
 
