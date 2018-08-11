@@ -20,18 +20,15 @@
  * @return mixed
  */
 function registryonsteroids_menu_tree($menu_name, array $context = []) {
-  // Get the original menu tree static to avoid rebuilding it.
-  $original_menu_tree = drupal_static('menu_tree', []);
-
   // Statically caching this function.
-  $ros_menu_tree = &drupal_static(__FUNCTION__, []);
+  $ros_menu_tree_builds = &drupal_static(__FUNCTION__, []);
 
-  if (!isset($ros_menu_tree[$menu_name])) {
+  if (!isset($ros_menu_tree_builds[$menu_name])) {
     $context['menu_name'] = $menu_name;
     $context += ['suggestions parts' => []];
 
     // Get the original menu build array.
-    $build = $original_menu_tree[$menu_name];
+    $build = menu_tree($menu_name);
 
     // Alteration of the original menu build array.
     registryonsteroids_alter_recursive_menu_tree(
@@ -64,8 +61,8 @@ function registryonsteroids_menu_tree($menu_name, array $context = []) {
       $context
     );
 
-    $ros_menu_tree[$menu_name] = $build;
+    $ros_menu_tree_builds[$menu_name] = $build;
   }
 
-  return $ros_menu_tree[$menu_name];
+  return $ros_menu_tree_builds[$menu_name];
 }
