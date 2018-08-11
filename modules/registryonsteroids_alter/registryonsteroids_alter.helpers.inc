@@ -233,7 +233,8 @@ function registryonsteroids_alter_recursive_menu_tree(array &$root_element, call
       continue;
     }
 
-    registryonsteroids_alter_recursive_menu_tree($root_element[$sub_element_key], $callback, $sub_element_key, $context);
+    // Alter the menu link element.
+    $callback($root_element[$sub_element_key], $sub_element_key, $context);
 
     if (!isset($root_element[$sub_element_key]['#below'])) {
       continue;
