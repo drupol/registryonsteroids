@@ -235,7 +235,7 @@ function registryonsteroids_alter_recursive_menu_tree(array &$root_element, call
 
     registryonsteroids_alter_recursive_menu_tree($root_element[$sub_element_key], $callback, $sub_element_key, $context);
 
-    if (!isset($root_element[$sub_element_key]['#below'])) {
+    if (empty($root_element[$sub_element_key]['#below'])) {
       continue;
     }
 
