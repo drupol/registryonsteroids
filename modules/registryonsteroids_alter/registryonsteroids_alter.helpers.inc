@@ -215,6 +215,9 @@ function registryonsteroids_alter_recursive_element_children(array &$root_elemen
  *
  * @param array $root_element
  *   The root element.
+ *   Typical structure:
+ *   $[$mlid]['#theme'] === 'menu_link__navigation'
+ *   $['#theme_wrappers'][] = 'menu_tree__navigation'
  * @param callable $callback
  *   A custom callback to apply to each element.
  * @param string|null $root_element_key
@@ -226,6 +229,7 @@ function registryonsteroids_alter_recursive_menu_tree(array &$root_element, call
 ) {
   $context += ['level' => 0];
 
+  // Alter the menu tree element.
   $callback($root_element, $root_element_key, $context);
 
   foreach (element_children($root_element) as $sub_element_key) {
@@ -240,6 +244,7 @@ function registryonsteroids_alter_recursive_menu_tree(array &$root_element, call
       continue;
     }
 
+    // Alter the sub-tree.
     $context['level']++;
     registryonsteroids_alter_recursive_menu_tree($root_element[$sub_element_key]['#below'], $callback, $sub_element_key, $context);
     $context['level']--;
