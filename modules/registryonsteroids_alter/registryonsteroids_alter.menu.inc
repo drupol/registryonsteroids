@@ -8,7 +8,7 @@
 /**
  * Copy of the function menu_tree().
  *
- * This allows to pass a context variables to sub-functions calls.
+ * It allows to pass a context variables.
  *
  * @param string $menu_name
  *   The menu name.
@@ -20,70 +20,49 @@
  * @return mixed
  */
 function registryonsteroids_menu_tree($menu_name, array $context = []) {
-  $menu_output = &drupal_static(__FUNCTION__, []);
+  // Statically caching this function.
+  $ros_menu_tree_builds = &drupal_static(__FUNCTION__, []);
 
-  $context['menu_name'] = $menu_name;
+  if (!isset($ros_menu_tree_builds[$menu_name])) {
+    $context['menu_name'] = $menu_name;
+    $context += ['suggestions parts' => []];
 
-  if (!isset($menu_output[$menu_name])) {
-    $menu_output[$menu_name] = registryonsteroids_menu_tree_output(
-      menu_tree_page_data($menu_name),
+    // Get the original menu build array.
+    $build = menu_tree($menu_name);
+
+    // Alteration of the original menu build array.
+    registryonsteroids_alter_recursive_menu_tree(
+      $build,
+      function (&$element, $key, $recursive_context) {
+        _registryonsteroids_alter_add_default_pre_render_callback($element);
+        _registryonsteroids_alter_add_default_pre_render_variables($element);
+
+        $element['#registryonsteroids']['suggestions']['theme_wrappers'] = array_merge(
+          $element['#registryonsteroids']['suggestions']['theme'],
+          $element['#registryonsteroids']['suggestions']['theme_wrappers'],
+          [
+            $recursive_context['block']->module,
+            $recursive_context['block']->delta,
+            $recursive_context['block']->region,
+            'level' . $recursive_context['level'],
+          ],
+          $recursive_context['suggestions parts']
+        );
+
+        $element['#registryonsteroids']['suggestions']['theme'] = array_merge(
+          $element['#registryonsteroids']['suggestions']['theme'],
+          [
+            'level' . $recursive_context['level'],
+          ],
+          $recursive_context['suggestions parts']
+        );
+      },
+      NULL,
       $context
     );
+
+    $ros_menu_tree_builds[$menu_name] = $build;
   }
 
-  return $menu_output[$menu_name];
-}
-
-/**
- * Copy of the function menu_tree_output().
- *
- * This allows to pass a context variables to sub-functions calls.
- *
- * @param array $tree
- *   The menu tree.
- * @param array $context
- *   The context.
- *
- * @see https://api.drupal.org/api/drupal/includes%21menu.inc/function/menu_tree_output/7.x
- *
- * @return array
- */
-function registryonsteroids_menu_tree_output(array $tree, array $context = []) {
-  // Call to the original function.
-  $build = menu_tree_output($tree);
-
-  $context += ['suggestions parts' => []];
-
-  // Alteration of the menu build array.
-  registryonsteroids_alter_recursive_menu_tree(
-    $build,
-    function (&$element, $key, $recursive_context) {
-      _registryonsteroids_alter_add_default_pre_render_callback($element);
-      _registryonsteroids_alter_add_default_pre_render_variables($element);
-
-      $element['#registryonsteroids']['suggestions']['theme_wrappers'] = array_merge(
-        $element['#registryonsteroids']['suggestions']['theme'],
-        $element['#registryonsteroids']['suggestions']['theme_wrappers'],
-        [
-          $recursive_context['block']->module,
-          $recursive_context['block']->delta,
-          $recursive_context['block']->region,
-          'level' . $recursive_context['level'],
-        ],
-        $recursive_context['suggestions parts']
-      );
-
-      $element['#registryonsteroids']['suggestions']['theme'] = array_merge(
-        $element['#registryonsteroids']['suggestions']['theme'],
-        [
-          'level' . $recursive_context['level'],
-        ],
-        $recursive_context['suggestions parts']
-      );
-    },
-    NULL,
-    $context
-  );
-
-  return $build;
+  return $ros_menu_tree_builds[$menu_name];
 }
