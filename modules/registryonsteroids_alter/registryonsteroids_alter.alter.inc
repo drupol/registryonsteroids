@@ -109,10 +109,22 @@ function registryonsteroids_alter_block_view_alter(&$data, $block) {
   $block_theme_suggestions = [];
   _registryonsteroids_alter_add_default_pre_render_variables($data);
 
-  // Specific handling for core menu blocks.
-  if ($block->module === 'system') {
-    $menus = menu_get_menus(TRUE);
+  // Specific handling for menus blocks.
+  if ($block->module === 'system' || $block->module === 'menu') {
+    switch ($block->module) {
+      case 'system':
+        $menus = menu_list_system_menus();
+        break;
 
+      case 'menu':
+        $menus = menu_get_menus(FALSE);
+        break;
+
+      default:
+        $menus = array();
+    }
+
+    // Update the block content.
     if (isset($menus[$block->delta])) {
       $content = registryonsteroids_menu_tree(
         $block->delta,
@@ -121,7 +133,12 @@ function registryonsteroids_alter_block_view_alter(&$data, $block) {
           'suggestions parts' => [],
         ]
       );
-      $content['#contextual_links'] = $data['content']['#contextual_links'];
+
+      // Add the contextual links if any.
+      if (isset($data['content']['#contextual_links'])) {
+        $content['#contextual_links'] = $data['content']['#contextual_links'];
+      }
+
       $data['content'] = $content;
 
       // Delete this to avoid duplicates later.
