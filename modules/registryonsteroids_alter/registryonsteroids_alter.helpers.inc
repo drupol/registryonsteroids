@@ -352,19 +352,9 @@ function _registryonsteroids_alter_form_alter_pre_render(array $form) {
  * @return string[]
  */
 function _registryonsteroids_get_current_page_suggestions() {
-  $page_suggestions_parts = [];
-
-  // Add suggestions if an entity is found on the current page.
-  if ($entity = registryonsteroids_alter_menu_get_entity()) {
-    $page_suggestions_parts[] = $entity['entity type'];
-
-    if (isset($entity['entity']->{$entity['entity info']['entity keys']['bundle']})) {
-      $page_suggestions_parts[] = $entity['entity']->{$entity['entity info']['entity keys']['bundle']};
-    }
-  }
-
-  return array_merge(
-    $page_suggestions_parts,
-    explode('/', $_GET['q'])
-  );
+  // As this function is meant to be called multiple times per request,
+  // we use a static variable initialized in registryonsteroids_alter_init()
+  // to avoid any kind of infinite recursion with menu_get_item() in
+  // registryonsteroids_alter_menu_get_entity().
+  return drupal_static('registryonsteroids_alter_init', []);
 }
