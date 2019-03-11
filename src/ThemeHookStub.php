@@ -34,7 +34,7 @@ final class ThemeHookStub {
    * @var string[][]
    *   Format: $[$phase_key][$weight][] = $placeholder_or_function
    */
-  private $placeholderssByPhasekeyAndWeight = [];
+  private $placeholderssByPhasekeyAndWeight = array();
 
   /**
    * Replacements indexed by phase.
@@ -42,15 +42,17 @@ final class ThemeHookStub {
    * @var string[][]
    *   Format: $[$phase_key]['@' . $function] = $function
    */
-  private $replacementssByPhasekey = [];
+  private $replacementssByPhasekey = array();
 
   /**
    * Constructs a stub without parents ("root").
    *
    * @param string $hook
+   *   The hook.
    * @param array $info
+   *   The hook info.
    * @param string[][] $functionsByPhasekeyAndWeight
-   *   Format: $[$phase_key][$weight] = $function
+   *   Format: $[$phase_key][$weight] = $function.
    * @param string[][] $templateFunctionsByPhasekeyAndWeight
    *   Format: $[$phase_key][$weight] = $function
    *   Should be empty if this is not a template.
@@ -79,8 +81,11 @@ final class ThemeHookStub {
    * Add variant to a specific hook.
    *
    * @param string $hook
+   *   The hook.
    * @param array|null $info
+   *   The hook info.
    * @param array $functionsByPhasekeyAndWeight
+   *   Functions sorted by phase and weight.
    *
    * @return static
    */
@@ -94,7 +99,7 @@ final class ThemeHookStub {
       }
     }
 
-    if (NULL !== $info) {
+    if ($info !== NULL) {
       // Remove original process/preprocess functions.
       // They will be replaced later.
       unset($info['process functions'], $info['preprocess functions']);
@@ -102,7 +107,7 @@ final class ThemeHookStub {
     }
 
     $variant->info['base hook'] = $this->baseHook;
-    $variant->placeholderssByPhasekeyAndWeight = [];
+    $variant->placeholderssByPhasekeyAndWeight = array();
 
     return $variant;
   }
@@ -111,6 +116,7 @@ final class ThemeHookStub {
    * Get a registry entry.
    *
    * @return array
+   *   The registry entry.
    */
   public function getRegistryEntry() {
     $info = $this->info;
@@ -119,7 +125,7 @@ final class ThemeHookStub {
       $info[$phase_key] = $placeholders_sorted;
     }
 
-    if ([] !== $this->replacementssByPhasekey) {
+    if (array() !== $this->replacementssByPhasekey) {
       $info['registryonsteroids replace'] = $this->replacementssByPhasekey;
     }
 
@@ -133,13 +139,13 @@ final class ThemeHookStub {
    *   Format: $[$phase_key][] = $function_or_placeholder
    */
   private function getPlaceholdersByPhasekeySorted() {
-    $placeholders_by_phasekey = [];
+    $placeholders_by_phasekey = array();
 
     foreach ($this->placeholderssByPhasekeyAndWeight as $phase_key => $placeholderss_by_weight) {
       ksort($placeholderss_by_weight);
-      $placeholders_by_phasekey[$phase_key] = [] !== $placeholderss_by_weight
+      $placeholders_by_phasekey[$phase_key] = array() !== $placeholderss_by_weight
         ? array_merge(...$placeholderss_by_weight)
-        : [];
+        : array();
     }
 
     return $placeholders_by_phasekey;

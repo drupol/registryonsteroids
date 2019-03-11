@@ -22,7 +22,7 @@ final class ThemeRegistryAltererLast implements ThemeRegistryAltererInterface {
         foreach (FunctionGroupUtil::PHASE_KEYS as $phase_key) {
           $info[$phase_key] = isset($base_hook_info[$phase_key])
             ? $base_hook_info[$phase_key]
-            : [];
+            : array();
         }
 
         unset($info['base hook']);

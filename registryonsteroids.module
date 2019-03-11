@@ -29,35 +29,29 @@ function registryonsteroids_init() {
 
 /**
  * Implements hook_menu().
- *
- * @return array[]
  */
 function registryonsteroids_menu() {
-  return [
-    'admin/config/development/registryonsteroids' => [
+  return array(
+    'admin/config/development/registryonsteroids' => array(
       'title' => 'Registry on steroids',
       'description' => 'Registry on steroids configuration',
       'page callback' => 'drupal_get_form',
-      'page arguments' => ['_registryonsteroids_admin_settings'],
-      'access arguments' => [
+      'page arguments' => array('_registryonsteroids_admin_settings'),
+      'access arguments' => array(
         'administer site',
-      ],
+      ),
       'file' => 'registryonsteroids.admin.inc',
-    ],
-  ];
+    ),
+  );
 }
 
 /**
  * Implements hook_module_implements_alter().
- *
- * @param mixed[] $implementations
- *   Format: $[$module] = $group
- * @param string $hook
  */
 function registryonsteroids_module_implements_alter(array &$implementations, $hook) {
-  if ('theme_registry_alter' === $hook) {
+  if ($hook === 'theme_registry_alter') {
     /* @see _registryonsteroids_first_theme_registry_alter() */
-    $implementations = ['_registryonsteroids_first' => FALSE] + $implementations;
+    $implementations = array('_registryonsteroids_first' => FALSE) + $implementations;
 
     /* @see _registryonsteroids_last_theme_registry_alter() */
     $implementations['_registryonsteroids_last'] = FALSE;
@@ -71,18 +65,18 @@ function registryonsteroids_module_implements_alter(array &$implementations, $ho
  * before all other hook_theme_registry_alter() implementations.
  *
  * @param array[] $registry
- *   Format: $[$theme_hook] = $info
+ *   Format: $[$theme_hook] = $info.
  */
 function _registryonsteroids_first_theme_registry_alter(array &$registry) {
   // Figure out which theme this applies to.
   $trace = debug_backtrace(0, 3);
 
   if (!isset($trace[2]['function'], $trace[2]['args'][0])
-    || '_theme_build_registry' !== $trace[2]['function']) {
+    || $trace[2]['function'] !== '_theme_build_registry') {
     watchdog(
       'registryonsteroids',
       'hook_theme_registry_alter() was called from an unexpected place. We cannot determine which theme this registry belongs to. registryonsteroids functionality might not work.',
-      [],
+      array(),
       WATCHDOG_WARNING
     );
 
@@ -102,7 +96,7 @@ function _registryonsteroids_first_theme_registry_alter(array &$registry) {
  * after all other hook_theme_registry_alter() implementations.
  *
  * @param array[] $registry
- *   Format: $[$theme_hook] = $info
+ *   Format: $[$theme_hook] = $info.
  */
 function _registryonsteroids_last_theme_registry_alter(array &$registry) {
   (new ThemeRegistryAltererLast())->alter($registry);

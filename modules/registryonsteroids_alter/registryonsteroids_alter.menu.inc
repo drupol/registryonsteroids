@@ -12,7 +12,7 @@
  *   The root element.
  *   Typical structure:
  *   $[$mlid]['#theme'] === 'menu_link__navigation'
- *   $['#theme_wrappers'][] = 'menu_tree__navigation'
+ *   $['#theme_wrappers'][] = 'menu_tree__navigation'.
  * @param callable $callback
  *   A custom callback to apply to each element.
  * @param string|null $root_element_key
@@ -20,9 +20,9 @@
  * @param array $context
  *   The context.
  */
-function registryonsteroids_alter_recursive_menu_tree(array &$root_element, callable $callback, $root_element_key = NULL, array &$context = []
+function registryonsteroids_alter_recursive_menu_tree(array &$root_element, callable $callback, $root_element_key = NULL, array &$context = array()
 ) {
-  $context += ['level' => 0];
+  $context += array('level' => 0);
 
   // Alter the menu tree element.
   $callback($root_element, $root_element_key, $context);

@@ -8,17 +8,6 @@ namespace Drupal\registryonsteroids;
 final class FunctionGroupUtil {
 
   /**
-   * Phases for process/preprocess functions.
-   *
-   * @var string[]
-   *   Format: $[$phase_key] = $phase
-   */
-  const PHASES = [
-    'preprocess functions' => 'preprocess',
-    'process functions' => 'process',
-  ];
-
-  /**
    * Array keys of the above.
    *
    * These are also the keys used in theme registry entries.
@@ -26,15 +15,27 @@ final class FunctionGroupUtil {
    * @var string[]
    *   Format: $[] = $phase_key
    */
-  const PHASE_KEYS = [
+  const PHASE_KEYS = array(
     'preprocess functions',
     'process functions',
-  ];
+  );
+
+  /**
+   * Phases for process/preprocess functions.
+   *
+   * @var string[]
+   *   Format: $[$phase_key] = $phase
+   */
+  const PHASES = array(
+    'preprocess functions' => 'preprocess',
+    'process functions' => 'process',
+  );
 
   /**
    * Group functions by hook, phase and weight.
    *
    * @param string[] $user_functions
+   *   The list of user functions.
    * @param string[] $prefixes
    *   A whitelist of prefixes (module names, themes, etc).
    *
@@ -47,7 +48,7 @@ final class FunctionGroupUtil {
       $user_functions,
       $prefixes);
 
-    $functions_by_hook_and_phasekey_and_weight = [];
+    $functions_by_hook_and_phasekey_and_weight = array();
     $weight = 0;
     foreach ($functions_by_prefix_and_phasekey_filtered as $functions_by_phasekey) {
       foreach ($functions_by_phasekey as $phase_key => $functions_by_hook) {
@@ -64,36 +65,10 @@ final class FunctionGroupUtil {
   }
 
   /**
-   * Group functions by prefix and phase, but filtered.
-   *
-   * @param string[] $user_functions
-   * @param string[] $prefixes
-   *   A whitelist of prefixes (module names, themes, etc).
-   *
-   * @return string[][][]
-   *   Format: $[$prefix][$phase_key][$themehook] = $function
-   *   E.g. $['system']['preprocess']['block'] = 'system_preprocess_block'.
-   */
-  public static function groupFunctionsByPrefixAndPhasekeyFiltered(array $user_functions, array $prefixes) {
-    $functions_by_prefix_and_phasekey = self::groupFunctionsByPrefixAndPhasekey(
-      $user_functions);
-
-    // Only keep functions with known prefix.
-    $functions_by_prefix_and_phasekey_filtered = [];
-    foreach ($prefixes as $prefix) {
-      if (!isset($functions_by_prefix_and_phasekey[$prefix])) {
-        continue;
-      }
-      $functions_by_prefix_and_phasekey_filtered[$prefix] = $functions_by_prefix_and_phasekey[$prefix];
-    }
-
-    return $functions_by_prefix_and_phasekey_filtered;
-  }
-
-  /**
    * Group functions by prefix and phase.
    *
    * @param string[] $user_functions
+   *   The list of user functions.
    *
    * @return string[][][]
    *   Format: $[$prefix][$phase_key][$themehook] = $function
@@ -102,7 +77,7 @@ final class FunctionGroupUtil {
   public static function groupFunctionsByPrefixAndPhasekey(array $user_functions) {
     $candidate_functions = preg_grep('/process/', $user_functions);
 
-    $functions_by_prefix_and_phasekey = [];
+    $functions_by_prefix_and_phasekey = array();
     foreach (self::PHASES as $phase_key => $phase) {
       $needle = '_' . $phase . '_';
 
@@ -118,13 +93,14 @@ final class FunctionGroupUtil {
           // This is the normal case with only one occurence of $needle.
           list($prefix, $hook) = $fragments;
           $functions_by_prefix_and_phasekey[$prefix][$phase_key][$hook] = $function;
+
           continue;
         }
 
         // This is a rare case with more than one occurence of $needle.
         // This doesn't have to be very fast, because it is rare.
         $prefix = array_shift($fragments);
-        while ([] !== $fragments) {
+        while (array() !== $fragments) {
           $hook = implode($needle, $fragments);
           $functions_by_prefix_and_phasekey[$prefix][$phase_key][$hook] = $function;
           $prefix .= $needle . array_shift($fragments);
@@ -140,6 +116,34 @@ final class FunctionGroupUtil {
     }
 
     return $functions_by_prefix_and_phasekey;
+  }
+
+  /**
+   * Group functions by prefix and phase, but filtered.
+   *
+   * @param string[] $user_functions
+   *   The list of user functions.
+   * @param string[] $prefixes
+   *   A whitelist of prefixes (module names, themes, etc).
+   *
+   * @return string[][][]
+   *   Format: $[$prefix][$phase_key][$themehook] = $function
+   *   E.g. $['system']['preprocess']['block'] = 'system_preprocess_block'.
+   */
+  public static function groupFunctionsByPrefixAndPhasekeyFiltered(array $user_functions, array $prefixes) {
+    $functions_by_prefix_and_phasekey = self::groupFunctionsByPrefixAndPhasekey(
+      $user_functions);
+
+    // Only keep functions with known prefix.
+    $functions_by_prefix_and_phasekey_filtered = array();
+    foreach ($prefixes as $prefix) {
+      if (!isset($functions_by_prefix_and_phasekey[$prefix])) {
+        continue;
+      }
+      $functions_by_prefix_and_phasekey_filtered[$prefix] = $functions_by_prefix_and_phasekey[$prefix];
+    }
+
+    return $functions_by_prefix_and_phasekey_filtered;
   }
 
 }

@@ -8,19 +8,19 @@
 /**
  * Implements hook_field_attach_view_alter().
  */
-function registryonsteroids_alter_field_attach_view_alter(array &$output, array $output_context = []) {
+function registryonsteroids_alter_field_attach_view_alter(array &$output, array $output_context = array()) {
   // Array properties of the render array field to use to extend the field
   // #theme property.
-  $context = [
-    'suggestions parts names' => [
+  $context = array(
+    'suggestions parts names' => array(
       '#field_type',
       '#formatter',
       '#field_name',
       '#entity_type',
       '#bundle',
       '#view_mode',
-    ],
-  ];
+    ),
+  );
 
   registryonsteroids_alter_recursive_element_children(
     $output,
@@ -51,10 +51,10 @@ function registryonsteroids_alter_entity_view_alter(array &$build, $type) {
   _registryonsteroids_alter_add_default_pre_render_callback($build);
   _registryonsteroids_alter_add_default_pre_render_variables($build);
 
-  $suggestions_parts = [
+  $suggestions_parts = array(
     isset($build['#bundle']) ? $build['#bundle'] : NULL,
     isset($build['#view_mode']) ? $build['#view_mode'] : NULL,
-  ];
+  );
 
   $build['#registryonsteroids']['suggestions']['theme'] = array_merge(
     $suggestions_parts,
@@ -82,10 +82,10 @@ function registryonsteroids_alter_element_info_alter(&$elements) {
  */
 function registryonsteroids_alter_form_alter(array &$form, array &$form_state, $form_id) {
   $form['#pre_render'] = array_merge(
-    [
+    array(
       '_registryonsteroids_alter_form_alter_pre_render' =>
       '_registryonsteroids_alter_form_alter_pre_render',
-    ],
+    ),
     $form['#pre_render']
   );
 }
@@ -94,7 +94,7 @@ function registryonsteroids_alter_form_alter(array &$form, array &$form_state, $
  * Implements hook_block_view_alter().
  */
 function registryonsteroids_alter_block_view_alter(&$data, $block) {
-  if (NULL === $data || [] === $data) {
+  if ($data === NULL || array() === $data) {
     return;
   }
 
@@ -106,7 +106,7 @@ function registryonsteroids_alter_block_view_alter(&$data, $block) {
     return;
   }
 
-  $block_theme_suggestions = [];
+  $block_theme_suggestions = array();
   _registryonsteroids_alter_add_default_pre_render_variables($data);
 
   // Specific handling for menus blocks.
@@ -114,10 +114,12 @@ function registryonsteroids_alter_block_view_alter(&$data, $block) {
     switch ($block->module) {
       case 'system':
         $menus = menu_list_system_menus();
+
         break;
 
       case 'menu':
         $menus = menu_get_menus(FALSE);
+
         break;
 
       default:
@@ -126,10 +128,10 @@ function registryonsteroids_alter_block_view_alter(&$data, $block) {
 
     // Update the block content.
     if (isset($menus[$block->delta])) {
-      $context = [
+      $context = array(
         'block' => $block,
-        'suggestions parts' => [],
-      ];
+        'suggestions parts' => array(),
+      );
 
       // Alteration of the original menu build array.
       registryonsteroids_alter_recursive_menu_tree(
@@ -138,12 +140,12 @@ function registryonsteroids_alter_block_view_alter(&$data, $block) {
           _registryonsteroids_alter_add_default_pre_render_callback($element);
           _registryonsteroids_alter_add_default_pre_render_variables($element);
 
-          $suggestions = [
+          $suggestions = array(
             $recursive_context['block']->module,
             $recursive_context['block']->delta,
             $recursive_context['block']->region,
             'level' . $recursive_context['level'],
-          ];
+          );
 
           $element['#registryonsteroids']['suggestions']['theme_wrappers'] = array_merge(
             $element['#registryonsteroids']['suggestions']['theme'],
@@ -176,9 +178,9 @@ function registryonsteroids_alter_block_view_alter(&$data, $block) {
   }
 
   if (!is_array($data['content'])) {
-    $data['content'] = [
+    $data['content'] = array(
       '#markup' => $data['content'],
-    ];
+    );
   }
 
   _registryonsteroids_alter_add_default_pre_render_variables($data['content']);
@@ -186,19 +188,19 @@ function registryonsteroids_alter_block_view_alter(&$data, $block) {
   // We use array_merge() to not override existing data - ex: if the user
   // wants to add custom suggestions, he's able to do it.
   $data['content']['#registryonsteroids']['suggestions']['theme'] = array_merge(
-    [
+    array(
       $block->module,
       $block->delta,
       $block->region,
-    ],
+    ),
     $block_theme_suggestions
   );
   $data['content']['#registryonsteroids']['suggestions']['theme_wrappers'] = array_merge(
-    [
+    array(
       $block->module,
       $block->delta,
       $block->region,
-    ],
+    ),
     $block_theme_suggestions
   );
 }
@@ -217,6 +219,7 @@ function registryonsteroids_alter_page_alter(array &$page) {
       foreach ($recursive_context['parents'] as $parent) {
         if (isset($parent['#region'])) {
           $region = $parent['#region'];
+
           break;
         }
       }
@@ -230,13 +233,13 @@ function registryonsteroids_alter_page_alter(array &$page) {
       // Do not add twice the region to the blocks.
       if (!isset($element['#block'])) {
         $element['#registryonsteroids']['suggestions']['theme_wrappers'] = array_merge(
-          [$region],
+          array($region),
           $element['#registryonsteroids']['suggestions']['theme_wrappers']
         );
       }
 
       $element['#registryonsteroids']['suggestions']['theme'] = array_merge(
-        [$region],
+        array($region),
         $element['#registryonsteroids']['suggestions']['theme']
       );
     }
@@ -247,7 +250,7 @@ function registryonsteroids_alter_page_alter(array &$page) {
  * Implements hook_contextual_links_view_alter().
  */
 function registryonsteroids_alter_contextual_links_view_alter(array &$element, array $items) {
-  $suggestions_parts = [];
+  $suggestions_parts = array();
 
   if (isset($element['#element']['#theme'])) {
     $suggestions_parts = array_merge(
