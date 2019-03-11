@@ -14,19 +14,37 @@ class CoreRegistryDefinitionsTest extends AbstractThemeTest {
    */
   protected function setUp() {
     parent::setUp();
-    module_disable(['registryonsteroids']);
+    module_disable(array('registryonsteroids'));
   }
 
   /**
-   * Test the registry definition validity.
+   * Return registry fixtures that should exist in core but doesn't.
    *
-   * @dataProvider registryProvider
+   * @return array
+   *   List of registry fixtures.
    */
-  public function testRegistryDefinitions($hook, $definition) {
-    $registry = theme_get_registry(TRUE);
+  public function registryMissingProvider() {
+    return Yaml::parseFile(__DIR__ . '/../../fixtures/core/registry/registry_missing.yml');
+  }
 
-    $this->assertArrayHasKey($hook, $registry);
-    $this->assertEqualThemeRegistryEntries($definition, $registry[$hook]);
+  /**
+   * Return registry fixtures.
+   *
+   * @return array
+   *   List of registry fixtures.
+   */
+  public function registryProvider() {
+    return Yaml::parseFile(__DIR__ . '/../../fixtures/core/registry/registry.yml');
+  }
+
+  /**
+   * Return render fixtures.
+   *
+   * @return array
+   *   List of registry fixtures.
+   */
+  public function renderProvider() {
+    return Yaml::parseFile(__DIR__ . '/../../fixtures/core/render/render.yml');
   }
 
   /**
@@ -51,33 +69,15 @@ class CoreRegistryDefinitionsTest extends AbstractThemeTest {
   }
 
   /**
-   * Return registry fixtures.
+   * Test the registry definition validity.
    *
-   * @return array
-   *   List of registry fixtures.
+   * @dataProvider registryProvider
    */
-  public function registryProvider() {
-    return Yaml::parseFile(__DIR__ . '/../../fixtures/core/registry/registry.yml');
-  }
+  public function testRegistryDefinitions($hook, $definition) {
+    $registry = theme_get_registry(TRUE);
 
-  /**
-   * Return registry fixtures that should exist in core but doesn't.
-   *
-   * @return array
-   *   List of registry fixtures.
-   */
-  public function registryMissingProvider() {
-    return Yaml::parseFile(__DIR__ . '/../../fixtures/core/registry/registry_missing.yml');
-  }
-
-  /**
-   * Return render fixtures.
-   *
-   * @return array
-   *   List of registry fixtures.
-   */
-  public function renderProvider() {
-    return Yaml::parseFile(__DIR__ . '/../../fixtures/core/render/render.yml');
+    $this->assertArrayHasKey($hook, $registry);
+    $this->assertEqualThemeRegistryEntries($definition, $registry[$hook]);
   }
 
 }

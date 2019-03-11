@@ -7,17 +7,14 @@
 
 /**
  * Implements hook_views_pre_render().
- *
- * @param \view $view
- *   The view object.
  */
-function registryonsteroids_alter_contrib_views_pre_render(\view $view) {
+function registryonsteroids_alter_contrib_views_pre_render(view $view) {
   $display = $view->display[$view->current_display];
 
-  $suggestions_parts = [
+  $suggestions_parts = array(
     $view->name,
     $display->display_plugin,
-  ];
+  );
 
   if ($display->id !== $display->display_plugin) {
     $suggestions_parts[] = $display->id;

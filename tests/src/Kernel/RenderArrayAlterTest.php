@@ -14,7 +14,17 @@ class RenderArrayAlterTest extends AbstractThemeTest {
    */
   protected function setUp() {
     parent::setUp();
-    module_enable(['registryonsteroids_alter']);
+    module_enable(array('registryonsteroids_alter'));
+  }
+
+  /**
+   * Return render array fixtures.
+   *
+   * @return array
+   *   List of render array fixtures.
+   */
+  public function renderArrayAlterProvider() {
+    return Yaml::parseFile(__DIR__ . '/../../fixtures/ros/renderarray/elements.yml');
   }
 
   /**
@@ -27,16 +37,6 @@ class RenderArrayAlterTest extends AbstractThemeTest {
     _registryonsteroids_alter_extend_theme_wrappers_property_with_suggestions($element, $suggestions_parts);
 
     $this->assertEquals($expected, $element);
-  }
-
-  /**
-   * Return render array fixtures.
-   *
-   * @return array
-   *   List of render array fixtures.
-   */
-  public function renderArrayAlterProvider() {
-    return Yaml::parseFile(__DIR__ . '/../../fixtures/ros/renderarray/elements.yml');
   }
 
 }

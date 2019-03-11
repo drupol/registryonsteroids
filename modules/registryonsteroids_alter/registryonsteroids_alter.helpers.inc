@@ -74,7 +74,7 @@ function _registryonsteroids_alter_extend_value_with_suggestions(&$hook_or_hooks
       )
     );
 
-    if ('' === $suggestion_part) {
+    if ($suggestion_part === '') {
       continue;
     }
 
@@ -107,11 +107,11 @@ function _registryonsteroids_alter_extend_value_with_suggestions(&$hook_or_hooks
  *   The region where the block is placed.
  */
 function _registryonsteroids_alter_update_block_render_array(array &$block_array, $region = NULL) {
-  $suggestions_parts = [
+  $suggestions_parts = array(
     $region,
     $block_array['#block']->module,
     $block_array['#block']->delta,
-  ];
+  );
 
   if (isset($block_array['#theme'])) {
     $suggestions_parts = array_merge($suggestions_parts, (array) $block_array['#theme']);
@@ -140,11 +140,11 @@ function registryonsteroids_alter_menu_get_entity() {
   $item['load_functions'] = (array) $item['load_functions'];
   $load_functions = array_values($item['load_functions']);
 
-  if (NULL === $load_functions) {
+  if ($load_functions === NULL) {
     return $return;
   }
 
-  if ([] === $load_functions) {
+  if (array() === $load_functions) {
     return $return;
   }
 
@@ -160,11 +160,11 @@ function registryonsteroids_alter_menu_get_entity() {
     }
 
     if (($obj = menu_get_object($entity_name, $arg_position)) && is_object($obj)) {
-      $return = [
+      $return = array(
         'entity' => $obj,
         'entity type' => $entity_name,
         'entity info' => $entity_info,
-      ];
+      );
     }
   }
 
@@ -189,8 +189,8 @@ function registryonsteroids_alter_menu_get_entity() {
  * @param array $context
  *   The context.
  */
-function registryonsteroids_alter_recursive_element_children(array &$root_element, callable $callback, $root_element_key = NULL, array &$context = []) {
-  $context += ['parents' => []];
+function registryonsteroids_alter_recursive_element_children(array &$root_element, callable $callback, $root_element_key = NULL, array &$context = array()) {
+  $context += array('parents' => array());
   $context['parents'][$root_element_key] = &$root_element;
 
   $callback($root_element, $root_element_key, $context);
@@ -217,7 +217,7 @@ function registryonsteroids_alter_recursive_element_children(array &$root_elemen
  *   The Drupal element.
  */
 function _registryonsteroids_alter_add_default_pre_render_callback(array &$element) {
-  $element += ['#pre_render' => []];
+  $element += array('#pre_render' => array());
   // Using a non numeric key to avoid duplicates.
   $element['#pre_render']['_registryonsteroids_alter_element_pre_render'] = '_registryonsteroids_alter_element_pre_render';
 }
@@ -229,10 +229,10 @@ function _registryonsteroids_alter_add_default_pre_render_callback(array &$eleme
  *   The Drupal element.
  */
 function _registryonsteroids_alter_add_default_pre_render_variables(array &$element) {
-  $element += ['#registryonsteroids' => []];
-  $element['#registryonsteroids'] += ['suggestions' => []];
-  $element['#registryonsteroids']['suggestions'] += ['theme' => []];
-  $element['#registryonsteroids']['suggestions'] += ['theme_wrappers' => []];
+  $element += array('#registryonsteroids' => array());
+  $element['#registryonsteroids'] += array('suggestions' => array());
+  $element['#registryonsteroids']['suggestions'] += array('theme' => array());
+  $element['#registryonsteroids']['suggestions'] += array('theme_wrappers' => array());
 }
 
 /**
@@ -266,7 +266,7 @@ function _registryonsteroids_alter_element_pre_render(array $element) {
   );
 
   $suggestions_theme = array_merge(
-    isset($element['#tag']) ? (array) $element['#tag'] : [],
+    isset($element['#tag']) ? (array) $element['#tag'] : array(),
     $element['#registryonsteroids']['suggestions']['theme'],
     $suggestions_page
   );
@@ -295,12 +295,12 @@ function _registryonsteroids_alter_element_pre_render(array $element) {
  *   The form.
  */
 function _registryonsteroids_alter_form_alter_pre_render(array $form) {
-  $context = [
+  $context = array(
     'form' => $form,
-    'suggestions parts' => [
+    'suggestions parts' => array(
       $form['#id'],
-    ],
-  ];
+    ),
+  );
 
   _registryonsteroids_alter_add_default_pre_render_variables($form);
 
@@ -315,7 +315,7 @@ function _registryonsteroids_alter_form_alter_pre_render(array $form) {
         $element['#registryonsteroids']['suggestions']['theme']
       );
 
-      $type = [];
+      $type = array();
       if (isset($element['#type'])) {
         $type[] = $element['#type'];
 
@@ -350,11 +350,12 @@ function _registryonsteroids_alter_form_alter_pre_render(array $form) {
  * other types of pages like Panels, Views, etc etc...
  *
  * @return string[]
+ *   An array of page suggestions.
  */
 function _registryonsteroids_get_current_page_suggestions() {
   // As this function is meant to be called multiple times per request,
   // we use a static variable initialized in registryonsteroids_alter_init()
   // to avoid any kind of infinite recursion with menu_get_item() in
   // registryonsteroids_alter_menu_get_entity().
-  return drupal_static('registryonsteroids_alter_init', []);
+  return drupal_static('registryonsteroids_alter_init', array());
 }

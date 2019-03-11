@@ -8,18 +8,18 @@ namespace Drupal\registryonsteroids;
 final class ThemeRegistryAltererFirst implements ThemeRegistryAltererInterface {
 
   /**
-   * The Drupal's module list.
-   *
-   * @var array
-   */
-  public $moduleList;
-
-  /**
    * The base themes.
    *
    * @var object[]
    */
   public $baseThemes;
+
+  /**
+   * The Drupal's module list.
+   *
+   * @var array
+   */
+  public $moduleList;
 
   /**
    * The current theme.
@@ -38,7 +38,7 @@ final class ThemeRegistryAltererFirst implements ThemeRegistryAltererInterface {
    * @param object $theme
    *   The current theme.
    */
-  public function __construct(array $module_list = [], array $base_themes = [], $theme = NULL) {
+  public function __construct(array $module_list = array(), array $base_themes = array(), $theme = NULL) {
     $this->moduleList = $module_list;
     $this->baseThemes = $base_themes;
     $this->theme = $theme;
@@ -50,7 +50,7 @@ final class ThemeRegistryAltererFirst implements ThemeRegistryAltererInterface {
   public function alter(array &$registry) {
     // Include all files registered as 'include' for theme hooks, so that
     // get_defined_functions() finds all preprocess functions.
-    $include_files_map = [];
+    $include_files_map = array();
     foreach ($registry as $info) {
       if (isset($info['includes'])) {
         foreach ($info['includes'] as $include_file) {
@@ -63,7 +63,7 @@ final class ThemeRegistryAltererFirst implements ThemeRegistryAltererInterface {
       include_once DRUPAL_ROOT . '/' . $include_file;
     }
 
-    $new_registry = [];
+    $new_registry = array();
     foreach ($this->buildStubs($registry) as $hook => $stub) {
       $new_registry[$hook] = $stub->getRegistryEntry();
     }
@@ -77,6 +77,7 @@ final class ThemeRegistryAltererFirst implements ThemeRegistryAltererInterface {
    *   The Drupal's registry.
    *
    * @return \Drupal\registryonsteroids\ThemeHookStub[]
+   *   An array of theme hook stubs.
    */
   private function buildStubs(array $registry) {
     ksort($registry);
@@ -85,13 +86,13 @@ final class ThemeRegistryAltererFirst implements ThemeRegistryAltererInterface {
       get_defined_functions()['user'],
       array_merge(...array_values($this->makePrefixes($this->moduleList, $this->baseThemes, $this->theme)))
     );
-    $functions_by_hook_and_phasekey_and_weight += ['*' => []];
+    $functions_by_hook_and_phasekey_and_weight += array('*' => array());
 
     $declared_hooks = array_keys($registry);
     $declared_hooks = array_combine($declared_hooks, $declared_hooks);
 
-    $declared_base_hooks = [];
-    $declared_root_hooks = [];
+    $declared_base_hooks = array();
+    $declared_root_hooks = array();
     foreach ($registry as $hook => $info) {
       if (isset($info['base hook']) && $hook !== $info['base hook']) {
         $declared_base_hooks[$hook] = $info['base hook'];
@@ -122,17 +123,19 @@ final class ThemeRegistryAltererFirst implements ThemeRegistryAltererInterface {
    * "because we can".
    *
    * @param \Drupal\registryonsteroids\ThemeHookStubFactory $factory
+   *   The theme hook stub factory.
    * @param string[] $hooks
-   *   Format: $[$hook] = $hook
+   *   Format: $[$hook] = $hook.
    * @param string[] $base_hooks
-   *   Format: $[hook] = $base_hook
+   *   Format: $[hook] = $base_hook.
    * @param string[] $declared_root_hooks
-   *   Format: $[$hook] = $hook
+   *   Format: $[$hook] = $hook.
    *
    * @return \Drupal\registryonsteroids\ThemeHookStub[]
+   *   An array of theme hook stubs.
    */
   private function doBuildStubs(ThemeHookStubFactory $factory, array $hooks, array $base_hooks, array $declared_root_hooks) {
-    $sortme = [];
+    $sortme = array();
     foreach ($hooks as $hook) {
       $sortme[$hook . '__'] = $hook;
       $sortme[$hook . '__|'] = FALSE;
@@ -141,16 +144,17 @@ final class ThemeRegistryAltererFirst implements ThemeRegistryAltererInterface {
     ksort($sortme);
 
     /** @var \Drupal\registryonsteroids\ThemeHookStub[] $trail */
-    $trail = [];
+    $trail = array();
     /** @var \Drupal\registryonsteroids\ThemeHookStub[] $stubs */
-    $stubs = [];
+    $stubs = array();
     /** @var \Drupal\registryonsteroids\ThemeHookStub|null $stub */
     $stub = NULL;
 
     $base_hook = '*';
     foreach ($sortme as $hook_or_false) {
-      if (FALSE === $hook_or_false) {
+      if ($hook_or_false === FALSE) {
         $stub = array_pop($trail);
+
         continue;
       }
 
@@ -159,6 +163,7 @@ final class ThemeRegistryAltererFirst implements ThemeRegistryAltererInterface {
 
       if (isset($stubs[$hook])) {
         $stub = $stubs[$hook];
+
         continue;
       }
 
@@ -170,7 +175,7 @@ final class ThemeRegistryAltererFirst implements ThemeRegistryAltererInterface {
       }
       elseif (!isset($base_hooks[$hook]) || $base_hook === $base_hooks[$hook]) {
         // $hook has the existing $stub as a parent, if that exists.
-        if (NULL === $stub) {
+        if ($stub === NULL) {
           // This is a discovered hook that is not an ancestor
           // of a declared hook.
           continue;
@@ -196,7 +201,7 @@ final class ThemeRegistryAltererFirst implements ThemeRegistryAltererInterface {
         }
       }
 
-      if (NULL !== $stub) {
+      if ($stub !== NULL) {
         $stubs[$hook] = $stub;
       }
     }
@@ -232,22 +237,22 @@ final class ThemeRegistryAltererFirst implements ThemeRegistryAltererInterface {
       },
       $base_themes);
 
-    return [
-      'template' => [
+    return array(
+      'template' => array(
         'template' => 'template',
-      ],
+      ),
       'module' => $module_list,
-      'theme_engine' => [
+      'theme_engine' => array(
         $theme->engine => $theme->engine,
-      ],
+      ),
       'base_theme' => array_combine(
         $base_theme_names,
         $base_theme_names
       ),
-      'theme' => [
+      'theme' => array(
         $theme->name => $theme->name,
-      ],
-    ];
+      ),
+    );
   }
 
 }
