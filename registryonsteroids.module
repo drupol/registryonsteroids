@@ -90,7 +90,7 @@ function _registryonsteroids_first_theme_registry_alter(array &$registry) {
 }
 
 /**
- * Callback for hook_theme_registry_alter()
+ * Callback for hook_theme_registry_alter().
  *
  * This callback is registered through hook_module_implements_alter(), and runs
  * after all other hook_theme_registry_alter() implementations.
