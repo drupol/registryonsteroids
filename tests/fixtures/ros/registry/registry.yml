@@ -148,3 +148,32 @@
       preprocess functions:
         - ros_test_preprocess_ros4
         - ros_theme_preprocess_ros4
+
+-
+  hook: item_list
+  definition:
+    function: ros_theme_item_list
+    theme path: sites/all/themes/registryonsteroids/ros_theme
+    type: theme
+    variables:
+      items: { }
+      title: ~
+      type: ul
+      attributes: { }
+      foo: bar
+      bar: foo
+
+-
+  hook: item_list__custom
+  definition:
+    path: sites/all/themes/registryonsteroids/ros_theme
+    template: item-list--custom
+    theme path: sites/all/themes/registryonsteroids/ros_theme
+    type: theme_engine
+    variables:
+      items: { }
+      title: ~
+      type: ul
+      attributes: { }
+      foo: bar
+      bar: foo

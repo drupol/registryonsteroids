@@ -124,7 +124,7 @@ function system_preprocess_ros2(array &$variables, $hook) {
 }
 
 /**
- * This callback is prepended in ros_test_theme_registry_alter()
+ * This callback is prepended in ros_test_theme_registry_alter().
  *
  * @param array $variables
  *   The variables.
@@ -136,7 +136,7 @@ function _ros_test_preprocess_ros2_custom_prepend(array &$variables, $hook) {
 }
 
 /**
- * This callback is appended in ros_test_theme_registry_alter()
+ * This callback is appended in ros_test_theme_registry_alter().
  *
  * @param array $variables
  *   The variables.
@@ -148,7 +148,7 @@ function _ros_test_preprocess_ros2_custom_append(array &$variables, $hook) {
 }
 
 /**
- * This callback is appended in ros_test_theme_registry_alter()
+ * This callback is appended in ros_test_theme_registry_alter().
  *
  * Unlike the previous one, its function name does not match 'preprocess_HOOK'.
  *
@@ -162,7 +162,7 @@ function _ros_test_phase0_ro_s2_custom_append(array &$variables, $hook) {
 }
 
 /**
- * This callback is appended in ros_test_theme_registry_alter()
+ * This callback is appended in ros_test_theme_registry_alter().
  *
  * @param array $variables
  *   The variables.

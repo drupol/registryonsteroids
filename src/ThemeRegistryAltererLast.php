@@ -25,6 +25,10 @@ final class ThemeRegistryAltererLast implements ThemeRegistryAltererInterface {
             : array();
         }
 
+        if (isset($base_hook_info['variables'])) {
+          $info['variables'] = ($base_hook_info['variables'] + $info['variables']);
+        }
+
         unset($info['base hook']);
       }
     }
