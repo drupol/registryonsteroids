@@ -14,6 +14,7 @@ function registryonsteroids_alter_field_attach_view_alter(array &$output, array 
   $context = array(
     'suggestions parts names' => array(
       '#field_type',
+      '#image_style',
       '#formatter',
       '#field_name',
       '#entity_type',
