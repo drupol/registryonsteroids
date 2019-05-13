@@ -84,8 +84,7 @@ function registryonsteroids_alter_element_info_alter(&$elements) {
 function registryonsteroids_alter_form_alter(array &$form, array &$form_state, $form_id) {
   $form['#pre_render'] = array_merge(
     array(
-      '_registryonsteroids_alter_form_alter_pre_render' =>
-      '_registryonsteroids_alter_form_alter_pre_render',
+      '_registryonsteroids_alter_form_alter_pre_render' => '_registryonsteroids_alter_form_alter_pre_render',
     ),
     $form['#pre_render']
   );
@@ -186,8 +185,8 @@ function registryonsteroids_alter_block_view_alter(&$data, $block) {
 
   _registryonsteroids_alter_add_default_pre_render_variables($data['content']);
 
-  // We use array_merge() to not override existing data - ex: if the user
-  // wants to add custom suggestions, he's able to do it.
+  // We use array_merge() to not override existing data - ex: the user will be
+  // able to add custom suggestions.
   $data['content']['#registryonsteroids']['suggestions']['theme'] = array_merge(
     array(
       $block->module,

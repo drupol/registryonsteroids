@@ -50,10 +50,10 @@ function registryonsteroids_menu() {
  */
 function registryonsteroids_module_implements_alter(array &$implementations, $hook) {
   if ($hook === 'theme_registry_alter') {
-    /* @see _registryonsteroids_first_theme_registry_alter() */
+    // @see _registryonsteroids_first_theme_registry_alter()
     $implementations = array('_registryonsteroids_first' => FALSE) + $implementations;
 
-    /* @see _registryonsteroids_last_theme_registry_alter() */
+    // @see _registryonsteroids_last_theme_registry_alter()
     $implementations['_registryonsteroids_last'] = FALSE;
   }
 }
@@ -83,7 +83,7 @@ function _registryonsteroids_first_theme_registry_alter(array &$registry) {
     return;
   }
 
-  /* @see _theme_build_registry() */
+  // @see _theme_build_registry()
   list($theme, $base_themes) = $trace[2]['args'];
 
   (new ThemeRegistryAltererFirst(module_list(), $base_themes, $theme))->alter($registry);
